@@ -101,9 +101,9 @@ default(
     left_margin=10mm,
     top_margin=10mm,
     right_margin=10mm,
-    titlefont=font(24,"times"),
-    guidefont=font(18,"times"),
-    tickfont=font(16,"times"),
+    titlefont=font(32,"times"),
+    guidefont=font(28,"times"),
+    tickfont=font(24,"times"),
 )
 plt = plot(
     40000.0./λ_target, stab,
