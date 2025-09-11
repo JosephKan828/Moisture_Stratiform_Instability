@@ -39,6 +39,7 @@ lev_lim = np.argmin(np.abs(levs-300.0))
 nlev = len(levs)
 
 state = cl.column_state(num_lev=nlev, water_depth=1)
+state["Ts"][:] = state["Tatm"][-1]
 
 # water vapor profile
 h2o = cl.radiation.ManabeWaterVapor(
@@ -59,7 +60,6 @@ rad_model.compute_diagnostics();
 LW_ref = rad_model.diagnostics["TdotLW"].copy();
 SW_ref = rad_model.diagnostics["TdotSW"].copy();
 
-
 # ### perturb moisture and temperature
 
 # In[9]:
@@ -71,6 +71,8 @@ LRF = {
     "t_lw": np.zeros((nlev, nlev)),
     "t_sw": np.zeros((nlev, nlev)),
     }
+
+print(h2o.q)
 
 for l in range(nlev):
     q_perturb = deepcopy(h2o.q);
@@ -137,45 +139,8 @@ plt.ylim(1000,100)
 plt.xlabel("Perturbation level (hPa)")
 plt.ylabel("Response level (hPa)")
 plt.colorbar()
-plt.savefig("/home/b11209013/2025_Research/MSI/Fig/RRTMG_LRF_q_lw.png", dpi=300);
+#plt.savefig("/home/b11209013/2025_Research/MSI/Fig/RRTMG_LRF_q_lw.png", dpi=300);
 plt.show()
 plt.close()
 
-lev_500 = np.argmin(np.abs(levs-500.0))
-mid_q_lw = LRF["q_lw"][lev_500-1:lev_500+2, :].mean(axis=0)
-
-plt.figure(figsize=(12,16))
-plt.plot(mid_q_lw, levs, color="royalblue", lw=2)
-plt.xlabel("LW heating from moisture (K/day)")
-plt.ylabel("Height (hPa)")
-plt.xlim(-3.2, 3.2)
-plt.ylim(1000,100)
-plt.savefig("/home/b11209013/2025_Research/MSI/Fig/RRTMG_LRF_q_lw_mid500.png", dpi=300);
-plt.show()
-plt.close()
-
-
-# ### Regress coefficient of first two mode
-
-# In[28]:
-
-
-z_std = np.array(mpcalc.pressure_to_height_std(levs*units.hPa))*1000;
-G1 = np.pi/2 * np.sin(np.pi*(z_std)/z_std[0]);
-G2 = np.pi/2 * np.sin(2*np.pi*(z_std)/z_std[0]);
-
-A = np.vstack([G1, G2]).T
-
-coeff = np.array(mid_q_lw) @ np.array(A)
-
-plt.figure(figsize=(12,16))
-plt.plot(mid_q_lw, levs, color="royalblue", lw=2, label='RRTMG')
-plt.plot(G1*(-0.5)+G2*1.6, levs, color="indianred", lw=2, label='Regress')
-plt.xlabel("LW heating from moisture (K/day)")
-plt.ylabel("Height (hPa)")
-plt.xlim(-3.2, 3.2)
-plt.ylim(1000,100)
-plt.savefig("/home/b11209013/2025_Research/MSI/Fig/RRTMG_LRF_q_lw_mid500_reg.png", dpi=300);
-plt.show()
-plt.close()
 
