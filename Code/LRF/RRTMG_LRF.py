@@ -13,7 +13,7 @@ import json;
 import h5py;
 import numpy as np;
 import netCDF4 as nc;
-import climlab as cl;
+import climlab as cl; #type: ignore
 
 import metpy.calc as mpcalc
 from metpy.units import units
@@ -22,15 +22,16 @@ from copy import deepcopy;
 from matplotlib import pyplot as plt;
 
 sys.path.append("/home/b11209013/Package/"); # path to my packages
-import Plot_Style as ps;
+import Plot_Style as ps; # type: ignore
 
 ps.apply_custom_plot_style();
 
+# Load data
+with h5py.File("/home/b11209013/2025_Research/MSI/File/mean_state.h5", "r") as f:
+    q_mean = np.array(f.get("q"))[::-1];
+    t_mean = np.array(f.get("t"))[::-1];
 
 # ### Construct RRTMG
-
-# In[8]:
-
 
 # constructing RRTMG
 levs = np.linspace(100.0, 1000.0, 37)
@@ -39,19 +40,16 @@ lev_lim = np.argmin(np.abs(levs-300.0))
 nlev = len(levs)
 
 state = cl.column_state(num_lev=nlev, water_depth=1)
+state["Tatm"][:] = t_mean
 state["Ts"][:] = state["Tatm"][-1]
 
 # water vapor profile
-h2o = cl.radiation.ManabeWaterVapor(
-    state=state,
-    relative_humidity=0.77,   # surface RH (tunable)
-    qStrat=5e-6               # minimum stratospheric q [kg/kg] ~ 0.005 g/kg
-)
+q = q_mean;
 
 rad_model = cl.radiation.RRTMG(
     name="Radiation Model",
     state=state,
-    specific_humidity=h2o.q,
+    specific_humidity=q,
     albedo=0.3,
 );
 
@@ -72,10 +70,9 @@ LRF = {
     "t_sw": np.zeros((nlev, nlev)),
     }
 
-print(h2o.q)
 
 for l in range(nlev):
-    q_perturb = deepcopy(h2o.q);
+    q_perturb = deepcopy(q);
     pert = q_perturb[l]*0.01
     q_perturb[l] += pert; # perturb specific humidity by 0.01 kg/kg
 
@@ -101,7 +98,7 @@ for l in range(nlev):
     rad_perturb = cl.radiation.RRTMG(
         name="Radiation Model",
         state=perturb_state,
-        specific_humidity=h2o.q,
+        specific_humidity=q,
         albedo=0.3,
     );
 
@@ -139,7 +136,7 @@ plt.ylim(1000,100)
 plt.xlabel("Perturbation level (hPa)")
 plt.ylabel("Response level (hPa)")
 plt.colorbar()
-#plt.savefig("/home/b11209013/2025_Research/MSI/Fig/RRTMG_LRF_q_lw.png", dpi=300);
+plt.savefig("/home/b11209013/2025_Research/MSI/Fig/RRTMG_LRF_q_lw.png", dpi=300);
 plt.show()
 plt.close()
 

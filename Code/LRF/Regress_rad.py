@@ -12,8 +12,8 @@ def main():
     fpath = "/home/b11209013/2025_Research/MSI/File/Rad_anom.h5";
 
     with h5py.File(fpath, "r") as f:
-        lw = f.get("LW_pert")[:].squeeze();
-        sw = f.get("SW_pert")[:].squeeze();
+        lw = np.array(f.get("LW_pert")).squeeze();
+        sw = np.array(f.get("SW_pert")).squeeze();
 
     # ==== 2. set up vertical normal modes ==== #
     levs = np.linspace(100, 1000, 37);
@@ -29,14 +29,20 @@ def main():
     lw_coeff = (np.array(lw[lev_lim:]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
     sw_coeff = (np.array(sw[lev_lim:]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
 
+    plt.figure(figsize=(6, 8))
     plt.plot(lw, levs);
     plt.plot(lw_coeff[0]*G1+lw_coeff[1]*G2, levs);
+    plt.title("Regression Coeff.: "+f"{lw_coeff}");
     plt.ylim(1000, 100)
+    plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Regress_rad_lw.png", dpi=300);
     plt.show()
 
+    plt.figure(figsize=(6, 8))
     plt.plot(sw, levs);
     plt.plot(sw_coeff[0]*G1+sw_coeff[1]*G2, levs);
+    plt.title("Regression Coeff.: "+f"{sw_coeff}");
     plt.ylim(1000, 100)
+    plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Regress_rad_sw.png", dpi=300);
     plt.show()
 
 
