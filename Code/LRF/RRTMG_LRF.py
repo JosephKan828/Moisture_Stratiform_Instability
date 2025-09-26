@@ -140,4 +140,14 @@ plt.savefig("/home/b11209013/2025_Research/MSI/Fig/RRTMG_LRF_q_lw.png", dpi=300)
 plt.show()
 plt.close()
 
+plt.figure(figsize=(16,12))
+plt.pcolormesh(levs,levs,LRF["q_sw"].T, vmin=-2, vmax=2, cmap='RdBu_r');
+plt.xlim(1000,100)
+plt.ylim(1000,100)
+plt.xlabel("Perturbation level (hPa)")
+plt.ylabel("Response level (hPa)")
+plt.colorbar()
+plt.savefig("/home/b11209013/2025_Research/MSI/Fig/RRTMG_LRF_q_sw.png", dpi=300);
+plt.show()
+plt.close()
 
