@@ -6,7 +6,7 @@ import numpy as np;
 from matplotlib import pyplot as plt;
 
 # load data
-file = "/home/b11209013/2025_Research/MSI/File/diagnose.h5"; 
+file = "/home/b11209013/2025_Research/MSI/File/Full/diagnose.h5"; 
 
 with h5py.File(file, 'r') as f:
     λ = np.array(f.get("λ"));
@@ -29,7 +29,7 @@ plt.xlabel("Non-dimensional Wavelength (2π/40000km)", fontsize=24);
 plt.ylabel("Growth Rate (1/day)", fontsize=24);
 plt.title("Growth Rate of the Most Unstable Mode", fontsize=28);
 plt.grid();
-plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Full_growth_rate.png", dpi=300);
+plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Full/growth_rate.png", dpi=300);
 plt.close()
 
 plt.figure(figsize=(16,9));
@@ -45,5 +45,5 @@ plt.xlabel("Non-dimensional Wavelength (2π/40000km)", fontsize=24);
 plt.ylabel("Phase Speed (m/s)", fontsize=24);
 plt.title("Phase Speed of All Modes", fontsize=28);
 plt.grid();
-plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Full_phase_speed.png", dpi=300);
+plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Full/phase_speed.png", dpi=300);
 plt.close()

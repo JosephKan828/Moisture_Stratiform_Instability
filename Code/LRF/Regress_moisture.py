@@ -5,9 +5,6 @@
 
 # ### Import package
 
-# In[1]:
-
-
 import numpy as np;
 import xarray as xr;
 
@@ -17,10 +14,6 @@ from matplotlib import pyplot as plt;
 
 
 # ### Load data
-
-# In[2]:
-
-
 # file path
 fpath="/data92/b11209013/ERA5/File/q.nc";
 
@@ -34,10 +27,6 @@ ds.close();
 
 
 # ### Find mean moisture profile
-
-# In[3]:
-
-
 q_mean = q.mean(dim=["time","lat","lon"], skipna=True);
 q_anom = q - q_mean;
 q500a  = q.sel(plev='500');
@@ -46,10 +35,6 @@ cov    = xr.cov(q_anom, q500a, dim="time");
 var500 = q500a.var(dim="time");
 
 beta = cov / var500;
-
-
-# In[4]:
-
 
 mean_corr = np.array(beta.mean(["lat", "lon"]));
 

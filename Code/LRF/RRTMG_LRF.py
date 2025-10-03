@@ -122,11 +122,11 @@ for key in LRF.keys():
     LRF[key] = temp_resp;
 
 # Save files
-with h5py.File("/home/b11209013/2025_Research/MSI/File/LRF.h5", "w") as f: 
-    f.create_dataset("q_lw", data = LRF["q_lw"])
-    f.create_dataset("q_sw", data = LRF["q_sw"])
-    f.create_dataset("t_lw", data = LRF["t_lw"])
-    f.create_dataset("t_sw", data = LRF["t_sw"])
+with h5py.File("/home/b11209013/2025_Research/MSI/File/Rad/LRF.h5", "w") as f: 
+    f.create_dataset("q_lw", data = LRF["q_lw"].T)
+    f.create_dataset("q_sw", data = LRF["q_sw"].T)
+    f.create_dataset("t_lw", data = LRF["t_lw"].T)
+    f.create_dataset("t_sw", data = LRF["t_sw"].T)
 
 
 plt.figure(figsize=(16,12))
@@ -136,8 +136,8 @@ plt.ylim(1000,100)
 plt.xlabel("Perturbation level (hPa)")
 plt.ylabel("Response level (hPa)")
 plt.colorbar()
-plt.savefig("/home/b11209013/2025_Research/MSI/Fig/RRTMG_LRF_q_lw.png", dpi=300);
-plt.show()
+plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Rad/RRTMG_LRF_q_lw.png", dpi=300);
+# plt.show()
 plt.close()
 
 plt.figure(figsize=(16,12))
@@ -147,7 +147,29 @@ plt.ylim(1000,100)
 plt.xlabel("Perturbation level (hPa)")
 plt.ylabel("Response level (hPa)")
 plt.colorbar()
-plt.savefig("/home/b11209013/2025_Research/MSI/Fig/RRTMG_LRF_q_sw.png", dpi=300);
-plt.show()
+plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Rad/RRTMG_LRF_q_sw.png", dpi=300);
+# plt.show()
 plt.close()
 
+plt.figure(figsize=(16,12))
+plt.pcolormesh(levs,levs,LRF["t_lw"].T, vmin=-1, vmax=1, cmap='RdBu_r');
+plt.xlim(1000,100)
+plt.ylim(1000,100)
+plt.xlabel("Perturbation level (hPa)")
+plt.ylabel("Response level (hPa)")
+plt.colorbar()
+plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Rad/RRTMG_LRF_t_lw.png", dpi=300);
+# plt.show()
+plt.close()
+
+
+plt.figure(figsize=(16,12))
+plt.pcolormesh(levs,levs,LRF["t_sw"].T, vmin=-1, vmax=1, cmap='RdBu_r');
+plt.xlim(1000,100)
+plt.ylim(1000,100)
+plt.xlabel("Perturbation level (hPa)")
+plt.ylabel("Response level (hPa)")
+plt.colorbar()
+plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Rad/RRTMG_LRF_t_sw.png", dpi=300);
+# plt.show()
+plt.close()

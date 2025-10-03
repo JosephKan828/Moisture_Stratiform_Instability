@@ -5,9 +5,6 @@
 
 # ### import package
 
-# In[1]:
-
-
 import sys;
 import h5py;
 import numpy as np;
@@ -20,9 +17,6 @@ import Plot_Style as ps; # type: ignore
 
 
 # ### Functions
-
-# In[2]:
-
 
 def outer_time_einsum(A, B, out=None, dtype=None):
     """
@@ -46,9 +40,6 @@ def outer_time_einsum(A, B, out=None, dtype=None):
 
 # ### Import files
 
-# In[3]:
-
-
 fpath = "/home/b11209013/2025_Research/MSI/File/"; # file path
 
 # load inverse matrix
@@ -68,16 +59,13 @@ with h5py.File(fpath+"bg_field.h5","r") as f:
     ρ0      = np.array(f.get("ρ0")); # shape: (z,)
 
 # load state vector
-with h5py.File(fpath+"state.h5","r") as f:
+with h5py.File(fpath+"Full/state.h5","r") as f:
     state   = np.array(f.get("state vector")); # shape: (k, v, t)
     t       = np.array(f.get("time"));         # shape: (t,)
     var     = np.array(f.get("variables"));    # shape: (v,1)
 
 
 # ### Reconstruct specific wave length
-
-# In[ ]:
-
 
 # target λ (units: km)
 λ    = 8640;
@@ -107,9 +95,6 @@ for i in range(len(t)):
 
 # ### Plot the animation
 
-# In[5]:
-
-
 from matplotlib.colors import Normalize
 
 # assume Temp_prof has shape (nt, nz, nx) with (z, x) increasing
@@ -124,16 +109,26 @@ tmax = np.max(t)
 
 x_sub = x[lft_bnd:rgt_bnd+1]  # x for plotting
 
-for i in tqdm(range(len(t))):
-    fig, ax = plt.subplots(figsize=(16, 9))
+fig, ax = plt.subplots(figsize=(16, 9))
+
+ct = ax.contourf(
+    x_sub, z, temp32[0][:, lft_bnd:rgt_bnd+1], levels=levels, cmap="RdBu_r",
+    norm=norm, extend="both"
+)
+
+cbar = fig.colorbar(ct, ax=ax, ticks=[-140, -100, -60, -20, 0, 20, 60, 100, 140], pad=0.02)
+cbar.ax.tick_params(labelsize=20)
+cbar.set_ticklabels(["-140", "-100", "-60", "-20", "0", "20", "60", "100", "140"])
+cbar.set_label(r"$T^\prime$ [ K ]", fontsize=24)
+
+def update(frame):
+    ax.clear()
 
     # Filled contours
-    cf = ax.contourf(
-        x_sub, z, temp32[i][:, lft_bnd:rgt_bnd+1], levels=levels, cmap="RdBu_r",
+    ct = ax.contourf(
+        x_sub, z, temp32[frame][:, lft_bnd:rgt_bnd+1], levels=levels, cmap="RdBu_r",
         norm=norm, extend="both"
     )
-    # (optional) zero contour line for reference
-    # ax.contour(x_sub, z, temp32[i], levels=[0.0], colors="k", linewidths=0.8)
 
     ax.set_xlim(-4_000_000, 4_000_000)
     ax.set_ylim(0, 15_000)
@@ -143,10 +138,11 @@ for i in tqdm(range(len(t))):
                     ["2","4","6","8","10","12","14"], fontsize=20)
     ax.set_xlabel("X [ 100 km ]", fontsize=24)
     ax.set_ylabel("Z [ km ]", fontsize=24)
-    ax.set_title(r"$T^\prime$ ($\lambda$=8640km) "+f"{t[i]}/{tmax}", fontsize=32)
+    ax.set_title(r"$T^\prime$ ($\lambda$=8640km) "+f"{t[frame]}/{tmax}", fontsize=32)
 
-    cbar = fig.colorbar(cf, ax=ax, pad=0.02)
-    cbar.set_label("T [K]")
+    return ct,
 
-    plt.savefig(f"/data92/b11209013/MSI/Figure/Full/t={t[i]}.png", dpi=100)
-    plt.close(fig)
+ani = FuncAnimation(fig, update, frames=len(t), blit=False)
+ani.save("/home/b11209013/2025_Research/MSI/Fig/Full/Temp_prof.mp4",
+        writer=FFMpegWriter(fps=50, bitrate=6000, extra_args=["-pix_fmt", "yuv420p"]))
+

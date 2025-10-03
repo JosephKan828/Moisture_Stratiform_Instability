@@ -85,7 +85,7 @@ speed        :: Matrix{Float64} = hcat((@. phase_speed(k))...);
 
 
 # save file
-h5open("/home/b11209013/2025_Research/MSI/File/diagnose.h5", "w") do f
+h5open("/home/b11209013/2025_Research/MSI/File/Full/diagnose.h5", "w") do f
     write(f, "λ", λ);
     write(f, "k", k);
     write(f, "growth_rate", modal_growth);
