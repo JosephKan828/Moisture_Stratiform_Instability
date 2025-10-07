@@ -13,12 +13,14 @@ def main():
     fpath = "/home/b11209013/2025_Research/MSI/File/Rad/Rad_anom.h5";
 
     with h5py.File(fpath, "r") as f:
-        lw_q = np.array(f.get("LW_moist_pert")).squeeze();
-        sw_q = np.array(f.get("SW_moist_pert")).squeeze();
-        lw_t = np.array(f.get("LW_temp_pert")).squeeze();
-        sw_t = np.array(f.get("SW_temp_pert")).squeeze();
+        lw_q  = np.array(f.get("LW_moist_pert")).squeeze();
+        sw_q  = np.array(f.get("SW_moist_pert")).squeeze();
+        lw_g1 = np.array(f.get("LW_g1_pert")).squeeze();
+        sw_g1 = np.array(f.get("SW_g1_pert")).squeeze();
+        lw_g2 = np.array(f.get("LW_g2_pert")).squeeze();
+        sw_g2 = np.array(f.get("SW_g2_pert")).squeeze();
 
-    with h5py.File("/home/b11209013/2025_Research/MSI/File/bg_field.h5", "r") as f:
+    with h5py.File("/home/b11209013/2025_Research/MSI/File/Sim_stuff/background.h5", "r") as f:
         rho0 = np.array(f.get("ρ0")).squeeze();
         z_itp = np.array(f.get("z")).squeeze()[::-1];
 
@@ -36,17 +38,23 @@ def main():
     modes = np.stack([G1[z_itp<=z300], G2[z_itp<=z300]], axis=0);
 
     # ==== 3. interpolate lw and sw to z_itp_lim ==== #
-    lw_itp_q = interp1d(z, lw_q, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
-    sw_itp_q = interp1d(z, sw_q, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
+    lw_itp_q  = interp1d(z, lw_q, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
+    sw_itp_q  = interp1d(z, sw_q, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
 
-    lw_itp_t = interp1d(z, lw_t, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
-    sw_itp_t = interp1d(z, sw_t, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
+    lw_itp_g1 = interp1d(z, lw_g1, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
+    sw_itp_g1 = interp1d(z, sw_g1, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
+
+    lw_itp_g2 = interp1d(z, lw_g2, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
+    sw_itp_g2 = interp1d(z, sw_g2, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
 
     lw_q_coeff = (np.array((rho0*lw_itp_q)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
     sw_q_coeff = (np.array((rho0*sw_itp_q)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
 
-    lw_t_coeff = (np.array((rho0*lw_itp_t)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
-    sw_t_coeff = (np.array((rho0*sw_itp_t)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
+    lw_g1_coeff = (np.array((rho0*lw_itp_g1)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
+    sw_g1_coeff = (np.array((rho0*sw_itp_g1)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
+
+    lw_g2_coeff = (np.array((rho0*lw_itp_g2)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
+    sw_g2_coeff = (np.array((rho0*sw_itp_g2)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
 
     plt.figure(figsize=(12, 16))
     plt.plot(rho0*lw_itp_q, z_itp, color="k", label="LW");
@@ -69,31 +77,60 @@ def main():
     plt.close();
 
     fig, ax1 = plt.subplots(figsize=(12, 16))
-    ax1.plot(rho0*lw_itp_t, z_itp, color="k", label="LW Regress")
-    ax1.plot(lw_t_coeff[0]*G1+lw_t_coeff[1]*G2, z_itp, "k--", label="LW Regress");
+    ax1.plot(rho0*lw_itp_g1, z_itp, color="k", label="LW Regress")
+    ax1.plot(lw_g1_coeff[0]*G1+lw_g1_coeff[1]*G2, z_itp, "k--", label="LW Regress");
     ax1.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
     ax1.set_ylabel("Height (m)", fontsize=20);
-    ax1.set_xlim(-0.1, 0.1);
+    ax1.set_xlim(-0.12, 0.12);
     ax1.set_ylim(0, 15000);
     ax1.tick_params(axis='x', labelsize=18);
     ax1.tick_params(axis='y', labelsize=18);
     # ax1.set_title("Regression of Radiative Heating Anomaly (Temp)", fontsize=28);
-    ax1.text(0.025, 3000, "LW Regression Coeff.: \n"+f"{lw_t_coeff}", fontsize=18);
+    ax1.text(0.025, 3000, "LW Regression Coeff.: \n"+f"{lw_g1_coeff}", fontsize=18);
     ax1.grid()
     ax1.legend(loc="upper left", fontsize=18);
 
     ax2 = ax1.twiny()
-    ax2.plot(rho0*sw_itp_t, z_itp, color="b", label="SW Regress")
-    ax2.plot(sw_t_coeff[0]*G1+sw_t_coeff[1]*G2, z_itp, "b--", label="SW Regress");
+    ax2.plot(rho0*sw_itp_g1, z_itp, color="b", label="SW Regress")
+    ax2.plot(sw_g1_coeff[0]*G1+sw_g1_coeff[1]*G2, z_itp, "b--", label="SW Regress");
     # ax2.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
-    ax2.set_xlim(-0.0004, 0.0004);
-    ax2.text(0.0001, 2000, "SW Regression Coeff.: \n"+f"{sw_t_coeff}", fontsize=18);
+    ax2.set_xticks(np.linspace(-0.0012, 0.0012, 5));
+    ax2.set_xlim(-0.0015, 0.0015);
+    ax2.text(0.0001, 2000, "SW Regression Coeff.: \n"+f"{sw_g1_coeff}", fontsize=18);
     ax2.tick_params(axis='x', color="b", labelsize=18);
     ax2.legend(loc="upper right", fontsize=18);
 
-    plt.suptitle("Regression of Radiative Heating Anomaly (Temp)", fontsize=28);
+    plt.suptitle("Regression of Radiative Heating Anomaly (T1)", fontsize=28);
 
-    plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_t_rad.png", dpi=300);
+    plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_g1_rad.png", dpi=300);
+    plt.close();
+
+    fig, ax1 = plt.subplots(figsize=(12, 16))
+    ax1.plot(rho0*lw_itp_g2, z_itp, color="k", label="LW Regress")
+    ax1.plot(lw_g2_coeff[0]*G1+lw_g2_coeff[1]*G2, z_itp, "k--", label="LW Regress");
+    ax1.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
+    ax1.set_ylabel("Height (m)", fontsize=20);
+    ax1.set_xlim(-0.18, 0.18);
+    ax1.set_ylim(0, 15000);
+    ax1.tick_params(axis='x', labelsize=18);
+    ax1.tick_params(axis='y', labelsize=18);
+    # ax1.set_title("Regression of Radiative Heating Anomaly (Temp)", fontsize=28);
+    ax1.text(0.025, 3000, "LW Regression Coeff.: \n"+f"{lw_g2_coeff}", fontsize=18);
+    ax1.grid()
+    ax1.legend(loc="upper left", fontsize=18);
+
+    ax2 = ax1.twiny()
+    ax2.plot(rho0*sw_itp_g2, z_itp, color="b", label="SW Regress")
+    ax2.plot(sw_g2_coeff[0]*G1+sw_g2_coeff[1]*G2, z_itp, "b--", label="SW Regress");
+    # ax2.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
+    ax2.set_xlim(-0.0008, 0.0008);
+    ax2.text(0.0001, 2000, "SW Regression Coeff.: \n"+f"{sw_g2_coeff}", fontsize=18);
+    ax2.tick_params(axis='x', color="b", labelsize=18);
+    ax2.legend(loc="upper right", fontsize=18);
+
+    plt.suptitle("Regression of Radiative Heating Anomaly (T2)", fontsize=28);
+
+    plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_g2_rad.png", dpi=300);
     plt.close();
 
 if __name__ == "__main__":
