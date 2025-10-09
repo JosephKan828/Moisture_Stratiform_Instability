@@ -27,6 +27,11 @@ def main():
         G2      = np.array(f.get("G2")).squeeze(); # shape: (1, z)
         z       = np.array(f.get("z"));            # shape: (z,)
 
+    plt.plot(G1, z)
+    plt.plot(G2, z)
+    plt.savefig("/home/b11209013/2025_Research/MSI/Fig/vertical_mode.png")
+    plt.close()
+    
     ## design vertical coordinates
     levels = np.linspace(100, 1000, 37)
     z_std = np.array(pressure_to_height_std((levels).astype(int) * units.hPa)) *1000.0
@@ -39,8 +44,8 @@ def main():
             np.linspace(100, 1000, 37), np.array([250, 500, 700, 850, 925, 1000]),
             mean_moist);
     
-    G1_itp = np.interp(z_std, z, G1);
-    G2_itp = np.interp(z_std, z, G2);    
+    G1_itp = np.interp(z_std, z, G1)*0.0065;
+    G2_itp = np.interp(z_std, z, G2)*0.0065;    
 
     # mean_temp_itp = interp1d(
     #         np.array([250, 500, 700, 850, 925, 1000])[::-1], mean_temp, kind='linear', fill_value="extrapolate"

@@ -21,9 +21,9 @@ def main():
         sw_g2 = np.array(f.get("SW_g2_pert")).squeeze();
 
     with h5py.File("/home/b11209013/2025_Research/MSI/File/Sim_stuff/background.h5", "r") as f:
-        rho0 = np.array(f.get("ρ0")).squeeze();
+        rho0 = np.array(f.get("ρ0")).squeeze()[::-1];
         z_itp = np.array(f.get("z")).squeeze()[::-1];
-
+    
     # ==== 2. set up vertical normal modes ==== #
     levs = np.linspace(100, 1000, 37);
 
@@ -32,8 +32,12 @@ def main():
     z         = np.asarray(pressure_to_height_std(levs * units.hPa).to('m').m)
     z300      = z[lev_lim];
 
-    G1 = np.pi / 2.0 * np.sin(np.pi*z_itp/z_itp.max())* 0.0065;
-    G2 = np.pi / 2.0 * np.sin(2*np.pi*z_itp/z_itp.max())* 0.0065;
+    G1 = np.pi / 2.0 * np.sin(np.pi*z_itp/z_itp.max())* (-0.0065 + 9.8/1004.5);
+    G2 = np.pi / 2.0 * np.sin(2*np.pi*z_itp/z_itp.max())* (-0.0065 + 9.8/1004.5);
+
+    plt.plot(G1, z_itp, label="G1");
+    plt.plot(G2, z_itp, label="G2");
+    plt.show()
 
     modes = np.stack([G1[z_itp<=z300], G2[z_itp<=z300]], axis=0);
 
@@ -46,7 +50,7 @@ def main():
 
     lw_itp_g2 = interp1d(z, lw_g2, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
     sw_itp_g2 = interp1d(z, sw_g2, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
-
+    
     lw_q_coeff = (np.array((rho0*lw_itp_q)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
     sw_q_coeff = (np.array((rho0*sw_itp_q)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
 
@@ -81,22 +85,19 @@ def main():
     ax1.plot(lw_g1_coeff[0]*G1+lw_g1_coeff[1]*G2, z_itp, "k--", label="LW Regress");
     ax1.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
     ax1.set_ylabel("Height (m)", fontsize=20);
-    ax1.set_xlim(-0.12, 0.12);
+    ax1.set_xlim(-0.0008, 0.0008);
     ax1.set_ylim(0, 15000);
     ax1.tick_params(axis='x', labelsize=18);
     ax1.tick_params(axis='y', labelsize=18);
-    # ax1.set_title("Regression of Radiative Heating Anomaly (Temp)", fontsize=28);
-    ax1.text(0.025, 3000, "LW Regression Coeff.: \n"+f"{lw_g1_coeff}", fontsize=18);
+    ax1.text(0.0002, 3000, "LW Regression Coeff.: \n"+f"{lw_g1_coeff}", fontsize=18);
     ax1.grid()
     ax1.legend(loc="upper left", fontsize=18);
 
     ax2 = ax1.twiny()
     ax2.plot(rho0*sw_itp_g1, z_itp, color="b", label="SW Regress")
     ax2.plot(sw_g1_coeff[0]*G1+sw_g1_coeff[1]*G2, z_itp, "b--", label="SW Regress");
-    # ax2.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
-    ax2.set_xticks(np.linspace(-0.0012, 0.0012, 5));
-    ax2.set_xlim(-0.0015, 0.0015);
-    ax2.text(0.0001, 2000, "SW Regression Coeff.: \n"+f"{sw_g1_coeff}", fontsize=18);
+    ax2.set_xlim(-6e-6, 6e-6);
+    ax2.text(-5e-6, 3000, "SW Regression Coeff.: \n"+f"{sw_g1_coeff}", fontsize=18);
     ax2.tick_params(axis='x', color="b", labelsize=18);
     ax2.legend(loc="upper right", fontsize=18);
 
@@ -110,12 +111,11 @@ def main():
     ax1.plot(lw_g2_coeff[0]*G1+lw_g2_coeff[1]*G2, z_itp, "k--", label="LW Regress");
     ax1.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
     ax1.set_ylabel("Height (m)", fontsize=20);
-    ax1.set_xlim(-0.18, 0.18);
+    ax1.set_xlim(-0.0012, 0.0012);
     ax1.set_ylim(0, 15000);
     ax1.tick_params(axis='x', labelsize=18);
     ax1.tick_params(axis='y', labelsize=18);
-    # ax1.set_title("Regression of Radiative Heating Anomaly (Temp)", fontsize=28);
-    ax1.text(0.025, 3000, "LW Regression Coeff.: \n"+f"{lw_g2_coeff}", fontsize=18);
+    ax1.text(-0.001, 7000, "LW Regression Coeff.: \n"+f"{lw_g2_coeff}", fontsize=18);
     ax1.grid()
     ax1.legend(loc="upper left", fontsize=18);
 
@@ -123,8 +123,8 @@ def main():
     ax2.plot(rho0*sw_itp_g2, z_itp, color="b", label="SW Regress")
     ax2.plot(sw_g2_coeff[0]*G1+sw_g2_coeff[1]*G2, z_itp, "b--", label="SW Regress");
     # ax2.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
-    ax2.set_xlim(-0.0008, 0.0008);
-    ax2.text(0.0001, 2000, "SW Regression Coeff.: \n"+f"{sw_g2_coeff}", fontsize=18);
+    ax2.set_xlim(-5e-6, 5e-6);
+    ax2.text(-4e-6, 4000, "SW Regression Coeff.: \n"+f"{sw_g2_coeff}", fontsize=18);
     ax2.tick_params(axis='x', color="b", labelsize=18);
     ax2.legend(loc="upper right", fontsize=18);
 

@@ -38,8 +38,8 @@ end
 
 param = ModelParams(
     1.4, 0.0, 1.0, 2.0, 1.0, 0.5, 1.1, -1.0, 0.3, 1.0,
-    # 1.0, 0.7, 4.0, 0.5, 1/12, 0.1, -4.89, 2.65, 3.20, -6.51, -1.9, 4.73 # radiation from temperature and moisture
-    1.0, 0.7, 4.0, 0.5, 1/12, 0.1, 0.0, 0.0, 0.0, 0.0, -1.9, 4.73 # radiation from moisture only
+    1.0, 0.7, 4.0, 0.5, 1/12, 0.1, -0.0571, 0.0079, 0.0189, -0.1028, -1.172, 11.703# radiation from temperature and moisture
+    # 1.0, 0.7, 4.0, 0.5, 1/12, 0.1, 0.0, 0.0, 0.0, 0.0, -1.9, 4.73 # radiation from moisture only
 );
 A :: Float64 = 1.0 - 2.0*param.f + (param.b2 - param.b1)/param.F;
 B :: Float64 = 1.0 + (param.b2 + param.b1)/param.F - A*param.r0;
@@ -94,7 +94,7 @@ speed        :: Matrix{Float64} = hcat((@. phase_speed(k))...);
 
 
 # save file
-h5open("/home/b11209013/2025_Research/MSI/File/Full/diagnose_rad_moisture.h5", "w") do f
+h5open("/home/b11209013/2025_Research/MSI/File/Full/diagnose_rad_both.h5", "w") do f
     write(f, "λ", λ);
     write(f, "k", k);
     write(f, "growth_rate", modal_growth);
