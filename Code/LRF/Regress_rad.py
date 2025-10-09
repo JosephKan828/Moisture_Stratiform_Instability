@@ -27,10 +27,10 @@ def main():
     # ==== 2. set up vertical normal modes ==== #
     levs = np.linspace(100, 1000, 37);
 
-    lev_lim = np.argmin(np.abs(levs-300));
+    # lev_lim = np.argmin(np.abs(levs-300));
 
     z         = np.asarray(pressure_to_height_std(levs * units.hPa).to('m').m)
-    z300      = z[lev_lim];
+    # z300      = z[lev_lim];
 
     G1 = np.pi / 2.0 * np.sin(np.pi*z_itp/z_itp.max())* (-0.0065 + 9.8/1004.5);
     G2 = np.pi / 2.0 * np.sin(2*np.pi*z_itp/z_itp.max())* (-0.0065 + 9.8/1004.5);
@@ -39,7 +39,7 @@ def main():
     plt.plot(G2, z_itp, label="G2");
     plt.show()
 
-    modes = np.stack([G1[z_itp<=z300], G2[z_itp<=z300]], axis=0);
+    modes = np.stack([G1, G2], axis=0);
 
     # ==== 3. interpolate lw and sw to z_itp_lim ==== #
     lw_itp_q  = interp1d(z, lw_q, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
@@ -51,14 +51,14 @@ def main():
     lw_itp_g2 = interp1d(z, lw_g2, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
     sw_itp_g2 = interp1d(z, sw_g2, kind="linear", fill_value="extrapolate")(z_itp); #type: ignore
     
-    lw_q_coeff = (np.array((rho0*lw_itp_q)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
-    sw_q_coeff = (np.array((rho0*sw_itp_q)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
+    lw_q_coeff = (np.array((rho0*lw_itp_q)) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
+    sw_q_coeff = (np.array((rho0*sw_itp_q)) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
 
-    lw_g1_coeff = (np.array((rho0*lw_itp_g1)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
-    sw_g1_coeff = (np.array((rho0*sw_itp_g1)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
+    lw_g1_coeff = (np.array((rho0*lw_itp_g1)) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
+    sw_g1_coeff = (np.array((rho0*sw_itp_g1)) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
 
-    lw_g2_coeff = (np.array((rho0*lw_itp_g2)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
-    sw_g2_coeff = (np.array((rho0*sw_itp_g2)[z_itp<=z300]) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
+    lw_g2_coeff = (np.array((rho0*lw_itp_g2)) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
+    sw_g2_coeff = (np.array((rho0*sw_itp_g2)) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
 
     plt.figure(figsize=(12, 16))
     plt.plot(rho0*lw_itp_q, z_itp, color="k", label="LW");

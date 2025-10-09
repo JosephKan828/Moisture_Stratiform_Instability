@@ -13,7 +13,7 @@ def main():
     fpath = "/home/b11209013/2025_Research/MSI/File/";
 
     ## Load LRF
-    with h5py.File(fpath+"/LRF.h5", "r" ) as f:
+    with h5py.File(fpath+"Rad/LRF.h5", "r" ) as f:
 
         q_lw = np.array(f.get("q_lw"))
         q_sw = np.array(f.get("q_sw"))
@@ -60,12 +60,12 @@ def main():
     # plt.show()
     plt.close()
 
-    lw_moist_pert = np.array(q_lw.T) @ np.array(mean_moist_itp[:, None]);
-    sw_moist_pert = np.array(q_sw.T) @ np.array(mean_moist_itp[:, None]);
-    lw_g1_pert = np.array(t_lw.T) @ np.array(G1_itp[:, None]);
-    sw_g1_pert = np.array(t_sw.T) @ np.array(G1_itp[:, None]);
-    lw_g2_pert = np.array(t_lw.T) @ np.array(G2_itp[:, None]);
-    sw_g2_pert = np.array(t_sw.T) @ np.array(G2_itp[:, None]);
+    lw_moist_pert = np.array(q_lw) @ np.array(mean_moist_itp[:, None]);
+    sw_moist_pert = np.array(q_sw) @ np.array(mean_moist_itp[:, None]);
+    lw_g1_pert = np.array(t_lw) @ np.array(G1_itp[:, None]);
+    sw_g1_pert = np.array(t_sw) @ np.array(G1_itp[:, None]);
+    lw_g2_pert = np.array(t_lw) @ np.array(G2_itp[:, None]);
+    sw_g2_pert = np.array(t_sw) @ np.array(G2_itp[:, None]);
 
     plt.figure(figsize=(6, 8))
     plt.plot(lw_moist_pert, np.linspace(100, 1000, 37))
