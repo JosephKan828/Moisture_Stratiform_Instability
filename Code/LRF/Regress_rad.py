@@ -5,8 +5,53 @@ import numpy as np;
 
 from metpy.units import units;
 from metpy.calc import pressure_to_height_std;
+import matplotlib as mpl
 from matplotlib import pyplot as plt;
+from matplotlib.ticker import AutoMinorLocator
 from scipy.interpolate import interp1d;
+
+def set_scientific_style():
+    mpl.rcParams.update({
+        "figure.dpi": 150,
+        "savefig.dpi": 300,
+        "savefig.bbox": "tight",
+        "figure.titlesize": 28,
+        "axes.linewidth": 1.2,
+        "axes.titlesize": 24,
+        "axes.labelsize": 20,
+        "xtick.labelsize": 18,
+        "ytick.labelsize": 18,
+        "legend.fontsize": 16,
+        "xtick.direction": "in",
+        "ytick.direction": "in",
+        "xtick.minor.visible": True,
+        "ytick.minor.visible": True,
+        "grid.color": "0.85",
+        "grid.linestyle": "-",
+        "grid.linewidth": 0.8,
+        "font.family": "DejaVu Sans",
+    })
+
+def add_common_formatting(ax, xlabel, ylabel, xlim, ylim):
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.grid(True)
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    # zero-line for reference
+    ax.axvline(0, lw=1.0, color="0.35", alpha=0.8)
+
+def annotate_coeff(ax, label, coeff_array, xy_axes=(0.03, 0.15)):
+    """Place text in axes coordinates to avoid overlap when limits change."""
+    txt = f"{label}:\n{coeff_array}"
+    ax.text(
+        xy_axes[0], xy_axes[1], txt,
+        transform=ax.transAxes, fontsize=16,
+        va="bottom", ha="left",
+        bbox=dict(boxstyle="round", facecolor="white", alpha=0.85, edgecolor="0.8")
+    )
 
 def main():
     # ==== 1. load data ==== #
@@ -35,10 +80,6 @@ def main():
     G1 = np.pi / 2.0 * np.sin(np.pi*z_itp/z_itp.max())* (-0.0065 + 9.8/1004.5);
     G2 = np.pi / 2.0 * np.sin(2*np.pi*z_itp/z_itp.max())* (-0.0065 + 9.8/1004.5);
 
-    plt.plot(G1, z_itp, label="G1");
-    plt.plot(G2, z_itp, label="G2");
-    plt.show()
-
     modes = np.stack([G1, G2], axis=0);
 
     # ==== 3. interpolate lw and sw to z_itp_lim ==== #
@@ -60,78 +101,114 @@ def main():
     lw_g2_coeff = (np.array((rho0*lw_itp_g2)) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
     sw_g2_coeff = (np.array((rho0*sw_itp_g2)) @ np.array(modes.T)) @ np.linalg.inv(np.array(modes)@np.array(modes.T));
 
-    plt.figure(figsize=(12, 16))
-    plt.plot(rho0*lw_itp_q, z_itp, color="k", label="LW");
-    plt.plot(rho0*sw_itp_q, z_itp, color="b", label="SW");
-    plt.plot(lw_q_coeff[0]*G1+lw_q_coeff[1]*G2, z_itp, "k--", label="LW Regress");
-    plt.plot(sw_q_coeff[0]*G1+sw_q_coeff[1]*G2, z_itp, "b--", label="SW Regress");
-    plt.legend(fontsize=18);
-    plt.xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
-    plt.ylabel("Height (m)", fontsize=20);
-    plt.xticks(fontsize=18);
-    plt.yticks(fontsize=18);
-    plt.xlim(-0.7, 0.7);
-    plt.ylim(0, 15000);
-    plt.title("Regression of Radiative Heating Anomaly (Moist)", fontsize=28);
-    plt.ylim(0, 15000);
-    plt.text(-0.6, 500, "LW Regression Coeff.: \n"+f"{lw_q_coeff}", fontsize=18);
-    plt.text(-0.6, 5000, "SW Regression Coeff.: \n"+f"{sw_q_coeff}", fontsize=18);
-    plt.grid()
-    plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_q_rad.png", dpi=300);
-    plt.close();
+    set_scientific_style()
 
-    fig, ax1 = plt.subplots(figsize=(12, 16))
-    ax1.plot(rho0*lw_itp_g1, z_itp, color="k", label="LW Regress")
-    ax1.plot(lw_g1_coeff[0]*G1+lw_g1_coeff[1]*G2, z_itp, "k--", label="LW Regress");
-    ax1.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
-    ax1.set_ylabel("Height (m)", fontsize=20);
-    ax1.set_xlim(-0.0008, 0.0008);
-    ax1.set_ylim(0, 15000);
-    ax1.tick_params(axis='x', labelsize=18);
-    ax1.tick_params(axis='y', labelsize=18);
-    ax1.text(0.0002, 3000, "LW Regression Coeff.: \n"+f"{lw_g1_coeff}", fontsize=18);
-    ax1.grid()
-    ax1.legend(loc="upper left", fontsize=18);
+    ###########################
+    # ==== 4. plot results ==== #
+    ###########################
+
+    # plot LW and SW regression results for moisture perturbation
+    fig = plt.figure(figsize=(12.0, 16.0))  # narrower width for profile plots
+    ax = fig.add_subplot(111)
+
+    ax.plot(rho0*lw_itp_q, z_itp, color="black", lw=2.0, label="LW")
+    ax.plot(rho0*sw_itp_q, z_itp, color="#1f77b4", lw=2.0, label="SW")
+    ax.plot(lw_q_coeff[0]*G1 + lw_q_coeff[1]*G2, z_itp, "k--", lw=2.0, label="LW (regress)")
+    ax.plot(sw_q_coeff[0]*G1 + sw_q_coeff[1]*G2, z_itp, "--", color="#1f77b4", lw=2.0, label="SW (regress)")
+
+    add_common_formatting(
+        ax,
+        xlabel=r"$\rho_0 \times$ Radiative Heating Anomaly (K kg m$^{-3}$)",
+        ylabel="Height (m)",
+        xlim=(-0.7, 0.7),
+        ylim=(0, 15000),
+    )
+
+    annotate_coeff(ax, "LW coeff", lw_q_coeff, xy_axes=(0.05, 0.78))
+    annotate_coeff(ax, "SW coeff", sw_q_coeff, xy_axes=(0.05, 0.60))
+
+    # place legend outside to reduce occlusion
+    leg = ax.legend(loc="upper left", frameon=False)
+    plt.suptitle("Regression of Radiative Heating Anomaly (Moist)")
+
+    out1_png = "/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_q_rad.png"
+    out1_pdf = "/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_q_rad.pdf"
+    fig.savefig(out1_png)
+    fig.savefig(out1_pdf)
+    plt.close(fig)
+    
+
+    # plot LW and SW regression results for g1 perturbation
+    fig, ax1 = plt.subplots(figsize=(12.0, 16.0))
+
+    ax1.plot(rho0*lw_itp_g1, z_itp, color="black", lw=2.0, label="LW")
+    ax1.plot(lw_g1_coeff[0]*G1 + lw_g1_coeff[1]*G2, z_itp, "k--", lw=2.0, label="LW (regress)")
+
+    add_common_formatting(
+        ax1,
+        xlabel=r"$\rho_0 \times$ LW (K kg m$^{-3}$)",
+        ylabel="Height (m)",
+        xlim=(-8e-4, 8e-4),
+        ylim=(0, 15000),
+    )
+    annotate_coeff(ax1, "LW coeff", lw_g1_coeff, xy_axes=(0.05, 0.78))
+    ax1.legend(loc="upper left", frameon=False)
+
+    # twin axis for SW on top
+    ax2 = ax1.twiny()
+    ax2.plot(rho0*sw_itp_g1, z_itp, color="#1f77b4", lw=2.0, label="SW")
+    ax2.plot(sw_g1_coeff[0]*G1 + sw_g1_coeff[1]*G2, z_itp, "--", color="#1f77b4", lw=2.0, label="SW (regress)")
+
+    # keep top axis formatting minimal, with its own limits
+    ax2.set_xlim(-6e-6, 6e-6)
+    ax2.tick_params(axis="x", labelsize=18, pad=4)
+    ax2.set_xlabel(r"$\rho_0 \times$ SW (K kg m$^{-3}$)")
+    # Add a zero-line on the top axis view as well
+    ax2.axvline(0, lw=1.0, color="0.35", alpha=0.8)
+    # annotation for SW on the right upper corner
+    annotate_coeff(ax2, "SW coeff", sw_g1_coeff, xy_axes=(0.05, 0.60))
+    ax2.legend(loc="upper right", frameon=False)
+
+    fig.suptitle("Regression of Radiative Heating Anomaly (T1)")
+    out2_png = "/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_g1_rad.png"
+    out2_pdf = "/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_g1_rad.pdf"
+    fig.savefig(out2_png)
+    fig.savefig(out2_pdf)
+    plt.close(fig)
+
+    # ================== Figure 3: g2 with twin x-axes ==================
+    fig, ax1 = plt.subplots(figsize=(12.0, 16.0))
+
+    ax1.plot(rho0*lw_itp_g2, z_itp, color="black", lw=2.0, label="LW")
+    ax1.plot(lw_g2_coeff[0]*G1 + lw_g2_coeff[1]*G2, z_itp, "k--", lw=2.0, label="LW (regress)")
+
+    add_common_formatting(
+        ax1,
+        xlabel=r"$\rho_0 \times$ LW (K kg m$^{-3}$)",
+        ylabel="Height (m)",
+        xlim=(-1.2e-3, 1.2e-3),
+        ylim=(0, 15000),
+    )
+    annotate_coeff(ax1, "LW coeff", lw_g2_coeff, xy_axes=(0.05, 0.78))
+    ax1.legend(loc="upper left", frameon=False)
 
     ax2 = ax1.twiny()
-    ax2.plot(rho0*sw_itp_g1, z_itp, color="b", label="SW Regress")
-    ax2.plot(sw_g1_coeff[0]*G1+sw_g1_coeff[1]*G2, z_itp, "b--", label="SW Regress");
-    ax2.set_xlim(-6e-6, 6e-6);
-    ax2.text(-5e-6, 3000, "SW Regression Coeff.: \n"+f"{sw_g1_coeff}", fontsize=18);
-    ax2.tick_params(axis='x', color="b", labelsize=18);
-    ax2.legend(loc="upper right", fontsize=18);
+    ax2.plot(rho0*sw_itp_g2, z_itp, color="#1f77b4", lw=2.0, label="SW")
+    ax2.plot(sw_g2_coeff[0]*G1 + sw_g2_coeff[1]*G2, z_itp, "--", color="#1f77b4", lw=2.0, label="SW (regress)")
 
-    plt.suptitle("Regression of Radiative Heating Anomaly (T1)", fontsize=28);
+    ax2.set_xlim(-1e-5, 1e-5)
+    ax2.tick_params(axis="x", labelsize=18, pad=4)
+    ax2.set_xlabel(r"$\rho_0 \times$ SW (K kg m$^{-3}$)")
+    ax2.axvline(0, lw=1.0, color="0.35", alpha=0.8)
+    annotate_coeff(ax2, "SW coeff", sw_g2_coeff, xy_axes=(0.05, 0.60))
+    ax2.legend(loc="upper right", frameon=False)
 
-    plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_g1_rad.png", dpi=300);
-    plt.close();
-
-    fig, ax1 = plt.subplots(figsize=(12, 16))
-    ax1.plot(rho0*lw_itp_g2, z_itp, color="k", label="LW Regress")
-    ax1.plot(lw_g2_coeff[0]*G1+lw_g2_coeff[1]*G2, z_itp, "k--", label="LW Regress");
-    ax1.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
-    ax1.set_ylabel("Height (m)", fontsize=20);
-    ax1.set_xlim(-0.0012, 0.0012);
-    ax1.set_ylim(0, 15000);
-    ax1.tick_params(axis='x', labelsize=18);
-    ax1.tick_params(axis='y', labelsize=18);
-    ax1.text(-0.001, 7000, "LW Regression Coeff.: \n"+f"{lw_g2_coeff}", fontsize=18);
-    ax1.grid()
-    ax1.legend(loc="upper left", fontsize=18);
-
-    ax2 = ax1.twiny()
-    ax2.plot(rho0*sw_itp_g2, z_itp, color="b", label="SW Regress")
-    ax2.plot(sw_g2_coeff[0]*G1+sw_g2_coeff[1]*G2, z_itp, "b--", label="SW Regress");
-    # ax2.set_xlabel("ρ0 * Radiative Heating Anomaly (K kg m$^{-3}$)", fontsize=20);
-    ax2.set_xlim(-5e-6, 5e-6);
-    ax2.text(-4e-6, 4000, "SW Regression Coeff.: \n"+f"{sw_g2_coeff}", fontsize=18);
-    ax2.tick_params(axis='x', color="b", labelsize=18);
-    ax2.legend(loc="upper right", fontsize=18);
-
-    plt.suptitle("Regression of Radiative Heating Anomaly (T2)", fontsize=28);
-
-    plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_g2_rad.png", dpi=300);
-    plt.close();
+    fig.suptitle("Regression of Radiative Heating Anomaly (T2)")
+    out3_png = "/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_g2_rad.png"
+    out3_pdf = "/home/b11209013/2025_Research/MSI/Fig/Rad/Regress_g2_rad.pdf"
+    fig.savefig(out3_png)
+    fig.savefig(out3_pdf)
+    plt.close(fig)
 
 if __name__ == "__main__":
     main();

@@ -46,3 +46,11 @@ z_std = np.array(pressure_to_height_std((lev.values).astype(int) * units.hPa)) *
 
 np.savetxt("/home/b11209013/2025_Research/MSI/File/mean_corr_temperature.txt", mean_corr);
 
+G1 = np.pi/2 * np.sin(np.pi * z_std/z_std.max()) * 0.0033
+G2 = np.pi/2 * np.sin(2 * np.pi * z_std/z_std.max()) * 0.0033
+
+coeff_1 = np.inner(mean_corr, G1) / np.inner(G1, G1)
+coeff_2 = np.inner(mean_corr, G2) / np.inner(G2, G2)
+
+print("coeff_1:", coeff_1)
+print("coeff_2:", coeff_2)
