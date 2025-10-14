@@ -2,48 +2,100 @@
 # import package
 import h5py;
 import numpy as np;
-
+from pathlib import Path
 from matplotlib import pyplot as plt;
 
 # load data
-file = "/home/b11209013/2025_Research/MSI/File/Full/diagnose.h5"; 
+FPATH_INPUT  = "/home/b11209013/2025_Research/MSI/File/Full/diagnose.h5"
+FPATH_OUTPUT = Path("/home/b11209013/2025_Research/MSI/Fig/Full/")
+FPATH_OUTPUT.mkdir(parents=True, exist_ok=True) # create directory if not exist
 
-with h5py.File(file, 'r') as f:
-    λ = np.array(f.get("λ"));
-    growth = np.array(f.get("growth_rate"));
-    speed = np.array(f.get("phase_speed"));
+with h5py.File(FPATH_INPUT, 'r') as f:
+    λ      = np.array(f.get("λ"))
+    growth = np.array(f.get("growth_rate"))
+    speed  = np.array(f.get("phase_speed"))
 
-pos_σ = np.array(np.where(growth>0));
 
-unstable_λ = λ[pos_σ[0]];
-unstable_speed = speed[pos_σ[0], pos_σ[1]];
+# find the unstable modes
+idx_max    = np.nanargmax(growth, axis=1)
+growth_max = growth[np.arange(λ.size), idx_max]
+speed_max  = speed[np.arange(λ.size), idx_max]
 
-# plot
-plt.figure(figsize=(16,9));
-plt.plot(40000/λ, np.max(growth, axis=1), label="Growth Rate", color='black');
-plt.xticks(np.linspace(0, 30, 7), fontsize=18);
-plt.yticks(np.linspace(0, 0.12, 7), fontsize=18);
-plt.xlim(0, 30);
-plt.ylim(0, 0.13);
-plt.xlabel("Non-dimensional Wavelength (2π/40000km)", fontsize=24);
-plt.ylabel("Growth Rate (1/day)", fontsize=24);
-plt.title("Growth Rate of the Most Unstable Mode", fontsize=28);
-plt.grid();
-plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Full/growth_rate.png", dpi=300);
-plt.close()
+# plot figures
+plt.rcParams.update({
+    "figure.dpi": 110,
+    "savefig.dpi": 300,
+    "font.size": 14,
+    "axes.labelsize": 18,
+    "axes.titlesize": 20,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
+    "axes.linewidth": 1.2,
+    "axes.grid": True,
+    "grid.alpha": 0.25,
+    "grid.linestyle": "--",
+    "legend.frameon": False,
+    "legend.fontsize": 13,
+    "mathtext.default": "regular",  # keep ascii clean; toggle to 'regular' for non-TeX
+})
 
-plt.figure(figsize=(16,9));
-for i in range(speed.shape[1]):
-    plt.scatter(40000/λ, speed[:,i], label=f"Mode {i+1}", s=10, color='black');
-for i in range(speed.shape[1]):
-    plt.scatter(40000/unstable_λ, unstable_speed, marker="o", s=40, facecolors='none', edgecolors='black');
-plt.xticks(np.linspace(0, 30, 7), fontsize=18);
-plt.yticks(np.linspace(0, 60, 8), fontsize=18);
-plt.xlim(0, 30)
-plt.ylim(-5, 60)
-plt.xlabel("Non-dimensional Wavelength (2π/40000km)", fontsize=24);
-plt.ylabel("Phase Speed (m/s)", fontsize=24);
-plt.title("Phase Speed of All Modes", fontsize=28);
-plt.grid();
-plt.savefig("/home/b11209013/2025_Research/MSI/Fig/Full/phase_speed.png", dpi=300);
-plt.close()
+def polish_axes(ax):
+    ax.tick_params(direction="in", length=6, width=1.1, top=True, right=True)
+    for spine in ax.spines.values():
+        spine.set_linewidth(1.1)
+
+# ----------------------------
+# Figure 1: Growth rate
+# ----------------------------
+
+x = 40000.0 / λ
+fig, ax = plt.subplots(figsize=(10.5, 6.2))
+ax.plot(x, growth_max, label="Max growth over modes", lw=2.5, color="black")
+
+# Optionally shade stable region for context
+# ax.fill_between(x, 0, growth_max, where=(growth_max <= 0), alpha=0.08, color="gray", label="Stable (≤ 0)")
+
+ax.set_xlim(0, 30)
+ax.set_ylim(0, 0.13)
+ax.set_xticks(np.linspace(0, 30, 7))
+ax.set_yticks(np.linspace(0, 0.12, 7))
+
+ax.set_xlabel("Non-dimensional Wavelength (2π/40000 km)")
+ax.set_ylabel("Growth Rate (1/day)")
+ax.set_title("Growth Rate of the Most Unstable Mode")
+
+polish_axes(ax)
+ax.legend(loc="upper right", ncols=1)
+fig.tight_layout()
+fig.savefig(FPATH_OUTPUT / "growth_rate.png")
+plt.close(fig)
+
+# ----------------------------
+# Figure 2: Phase speed (all modes + highlight most-unstable positive-growth)
+# ----------------------------
+fig, ax = plt.subplots(figsize=(10.5, 6.2))
+
+# Plot all modes lightly for context (vectorized, no Python loops):
+# We broadcast x (Nλ,) to (Nλ, Nmodes) for a single scatter call.
+X = np.broadcast_to(x[:, None], speed.shape)
+ax.scatter(X, speed, s=8, alpha=0.25, edgecolors="none", label="All modes")
+
+# Overlay the most-unstable mode (only where growth>0)
+ax.scatter(x, speed_max,
+           s=36, facecolors="none", edgecolors="black", linewidths=1.2,
+           label="Most-unstable (growth > 0)")
+
+ax.set_xlim(0, 30)
+ax.set_ylim(-5, 60)
+ax.set_xticks(np.linspace(0, 30, 7))
+ax.set_yticks(np.linspace(0, 60, 7))
+
+ax.set_xlabel("Non-dimensional Wavelength (2π/40000 km)")
+ax.set_ylabel("Phase Speed (m s$^{-1}$)")
+ax.set_title("Phase Speed of All Modes")
+
+polish_axes(ax)
+ax.legend(loc="upper right")
+fig.tight_layout()
+fig.savefig(FPATH_OUTPUT / "phase_speed.png")
+plt.close(fig)
