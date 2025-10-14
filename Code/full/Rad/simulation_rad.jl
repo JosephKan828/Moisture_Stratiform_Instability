@@ -66,14 +66,14 @@ function coeff_matrix(
 )
     α :: ComplexF64 = -d1*(-1.5*rq+RT11) - d2*(1.5*rq+RT12);
     β :: ComplexF64 = -d1*RT21 - d2*RT22;
-    γ :: ComplexF64 = -d1*(rq+Rq1) - d2*(-rq+Rq2);
+    γ :: ComplexF64 = -d1*(rq+Rq1) - d2*(-rq+Rq2); # Largely influenced by moisture-radiation feedback (Before: -1.47; After: -4.28)
     δ :: ComplexF64 = -d1*(1+r0) - d2*(1-r0)
 
     mat :: Matrix{ComplexF64} = [
         -ϵ        0.0      (kn*c1)^2.0      0.0        0.0      0.0  ;
         0.0        -ϵ           0.0     (kn*c2)^2.0    0.0      0.0  ;
-        -1.0      0.0      -1.5*rq+RT11     RT21      rq+Rq1   1+r0  ;
-        0.0      -1.0       1.5*rq+RT12     RT22     -rq+Rq2   1-r0  ;
+        -1.0      0.0      -1.5*rq+RT11     RT21      rq+Rq1   1+r0  ; # T1 from q: Before: -0.7; After: 4.91
+        0.0      -1.0       1.5*rq+RT12     RT22     -rq+Rq2   1-r0  ; # T2 from q: Before: 0.7; After: 4.06
         a1         a2            α           β          γ        δ   ;
         f/B/τL (1-f)/B/τL -1.5*A*rq/B/τL    0.0     A*rq/B/τL -1.0/τL;
     ];
@@ -86,14 +86,22 @@ function integration(state, t, k, init, coeff_mat)
     Nt,Nv,Nk = size(state); # acquire number of time, variable, and wavenumber
     Δt       = t[2]-t[1]
     
+    Φs = @. exp(Δt*coeff_matrix(k))
+
     @threads for j in eachindex(k)
-        A = coeff_matrix(k[j]) # coefficient matrix for each wavenumber
-        Φ = exp(Δt*A) # matrix exponential for the coefficient matrix with Δt
+        # A = coeff_matrix(k[j]) # coefficient matrix for each wavenumber
+        # Φ = exp(Δt*A) # matrix exponential for the coefficient matrix with Δt
         
-        state[1,:,j] .= init[:,j]; # set initial condition as the first time step
+        Φ = Φs[j]
+        @views state[1,:,j] .= init[:,j]; # set initial condition as the first time stepא
+        tmp = similar(state[1, :, j])
         for i in 2:Nt
-            @views state[i,:,j] = Φ*state[i-1,:,j]
+            @views mul!(tmp, Φ, state[i-1, :, j])
+            @views state[i, :, j] .= tmp
         end
+        # for i in 2:Nt
+            # @views state[i,:,j] = Φ*state[i-1,:,j]
+        # end
     end
     return state
 end
@@ -103,20 +111,20 @@ end
 #####################
 FPATH_SIM ::String = "/home/b11209013/2025_Research/MSI/File/Sim_stuff/";
 
-# background field
-ρ0, p0, T0, z_bg = h5open(FPATH_SIM * "background.h5", "r") do f
-    read(f, "ρ0"), read(f, "p0"), read(f, "T0"), read(f, "z")
-end
+# # background field
+# ρ0, p0, T0, z_bg = h5open(FPATH_SIM * "background.h5", "r") do f
+#     read(f, "ρ0"), read(f, "p0"), read(f, "T0"), read(f, "z")
+# end
 
-# vertical mode
-G1, G2 = h5open(FPATH_SIM * "vertical_mode.h5", "r") do f
-    read(f, "G1"), read(f, "G2")
-end
+# # vertical mode
+# G1, G2 = h5open(FPATH_SIM * "vertical_mode.h5", "r") do f
+#     read(f, "G1"), read(f, "G2")
+# end
 
-# domain setting
-x, z, t = h5open(FPATH_SIM * "domain.h5", "r") do f
-    read(f, "x"), read(f, "z"), read(f, "t")
-end
+# # domain setting
+# x, z, t = h5open(FPATH_SIM * "domain.h5", "r") do f
+#     read(f, "x"), read(f, "z"), read(f, "t")
+# end
 
 # inverse matrix for projection
 k = h5open(FPATH_SIM * "inv_mat.h5", "r") do f
@@ -124,10 +132,11 @@ k = h5open(FPATH_SIM * "inv_mat.h5", "r") do f
 end
 
 #####################
-# Horizontal spatial setting
+# Time setup
 #####################
-Nt :: Int64 = length(t);          # number of time steps
-
+Nt :: Int64           = 1000;                  # number of time steps
+Lt :: Float64         = 1e2;                   # simulation duration: 100 days
+t  :: Vector{Float64} = LinRange(0.0, Lt, Nt); # time axis
 
 # Initial state vector
 init :: Matrix{ComplexF64} = randn(6, length(k))*0.1;
