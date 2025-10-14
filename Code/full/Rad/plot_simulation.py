@@ -78,8 +78,8 @@ rgt_bnd = np.argmin(np.abs(x-4320000));
 
 # reconstruct physical temperature and vertical motion 
 # w_pc = np.einsum("vt,x->vxt", state[kidx,:2,:] , inv_mat[:,kidx], optimize=True)[:,lft_bnd:rgt_bnd+1,:].real;
-t1_pc = (state[kidx,3,:][:,None]@inv_mat[:,kidx][None,:]).real;
-t2_pc = (state[kidx,4,:][:,None]@inv_mat[:,kidx][None,:]).real;
+t1_pc = (state[kidx,2,:][:,None]@inv_mat[:,kidx][None,:]).real;
+t2_pc = (state[kidx,3,:][:,None]@inv_mat[:,kidx][None,:]).real;
 
 # construct vertical profile
 # w1 = outer_time_einsum(w_pc[0], G1) / ρ0[None,:,None];
@@ -99,6 +99,8 @@ from matplotlib.colors import Normalize
 
 # assume Temp_prof has shape (nt, nz, nx) with (z, x) increasing
 temp32 = np.asarray(Temp_prof, dtype=np.float32, order="C")
+
+temp32 = np.ma.masked_invalid(temp32)
 
 # symmetric color range is often nicer for anomalies
 amax  = float(np.nanmax(np.abs(temp32)))

@@ -49,7 +49,7 @@ end
 
 param = ModelParams(
     1.4, 0.0, 1.0, 2.0, 1.0, 0.5, 1.1, -1.0, 0.3, 1.0,
-    1.0, 0.7, 4.0, 0.5, 1/12, 0.1, -4.89, 2.65, 3.20, -6.51, -1.9, 4.73
+    1.0, 0.7, 4.0, 0.5, 1/12, 0.1, -0.042, -0.0087, -0.011, -0.069, 5.61, 3.36 # radiation from temperature and moisture
 );
 A :: Float64 = 1.0 - 2.0*param.f + (param.b2 - param.b1)/param.F;
 B :: Float64 = 1.0 + (param.b2 + param.b1)/param.F - A*param.r0;
