@@ -72,8 +72,8 @@ T = length(w1_coeff)
 X = length(b)
 Z = length(z)
 
-# --- preallocate (T, X) work arrays once ---
 W1 = Array{eltype(state)}(undef, T, X)
+# --- preallocate (T, X) work arrays once ---
 W2 = similar(W1)
 T1 = similar(W1)
 T2 = similar(W1)
@@ -101,7 +101,7 @@ G1s = (0.0033) .* (G1 ./ ρ0)   # length Z
 G2s = (0.0033) .* (G2 ./ ρ0)
 
 # --- allocate 3D outputs ---
-w1_prof = Array{eltype(state)}(undef, Z, T, X)
+w1_prof = Array{eltype(state)}(y, Z, T, X)
 w2_prof = similar(w1_prof)
 T1_prof = similar(w1_prof)
 T2_prof = similar(w1_prof)

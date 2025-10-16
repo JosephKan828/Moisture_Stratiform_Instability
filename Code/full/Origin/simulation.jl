@@ -17,23 +17,6 @@ BLAS.set_num_threads(12);
 
 params = default_params("conv_only");
 
-# integration function
-# function integration(state, t, k, init, coeff_mat)
-#     Nt,Nv,Nk = size(state); # acquire number of time, variable, and wavenumber
-#     Δt       = t[2]-t[1]
-    
-#     @threads for j in eachindex(k)
-#         A = coeff_matrix(k[j]) # coefficient matrix for each wavenumber
-#         Φ = exp(Δt*A) # matrix exponential for the coefficient matrix with Δt
-        
-#         state[1,:,j] .= init[:,j]; # set initial condition as the first time step
-#         for i in 2:Nt
-#             @views state[i,:,j] = Φ*state[i-1,:,j]
-#         end
-#     end
-#     return state
-# end
-
 function integration(state, t, k, init, coeff_mat)
     Nt,Nv,Nk = size(state); # acquire number of time, variable, and wavenumber
     Δt       = t[2]-t[1]
@@ -41,9 +24,6 @@ function integration(state, t, k, init, coeff_mat)
     Φs = @. exp(Δt*coeff_matrix(k; param=params))
 
     @threads for j in eachindex(k)
-        # A = coeff_matrix(k[j]) # coefficient matrix for each wavenumber
-        # Φ = exp(Δt*A) # matrix exponential for the coefficient matrix with Δt
-        
         Φ = Φs[j]
         @views state[1,:,j] .= init[:,j]; # set initial condition as the first time stepא
         tmp = similar(state[1, :, j])
@@ -51,9 +31,6 @@ function integration(state, t, k, init, coeff_mat)
             @views mul!(tmp, Φ, state[i-1, :, j])
             @views state[i, :, j] .= tmp
         end
-        # for i in 2:Nt
-            # @views state[i,:,j] = Φ*state[i-1,:,j]
-        # end
     end
     return state
 end
