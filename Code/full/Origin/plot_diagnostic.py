@@ -6,8 +6,8 @@ from pathlib import Path
 from matplotlib import pyplot as plt;
 
 # load data
-FPATH_INPUT  = "/home/b11209013/2025_Research/MSI/File/Full/diagnose.h5"
-FPATH_OUTPUT = Path("/home/b11209013/2025_Research/MSI/Fig/Full/")
+FPATH_INPUT  = "/home/b11209013/2025_Research/MSI/File/Full/Origin/diagnose.h5"
+FPATH_OUTPUT = Path("/home/b11209013/2025_Research/MSI/Fig/Full/Origin/")
 FPATH_OUTPUT.mkdir(parents=True, exist_ok=True) # create directory if not exist
 
 with h5py.File(FPATH_INPUT, 'r') as f:
@@ -49,53 +49,55 @@ def polish_axes(ax):
 # ----------------------------
 
 x = 40000.0 / λ
-fig, ax = plt.subplots(figsize=(10.5, 6.2))
-ax.plot(x, growth_max, label="Max growth over modes", lw=2.5, color="black")
 
-# Optionally shade stable region for context
-# ax.fill_between(x, 0, growth_max, where=(growth_max <= 0), alpha=0.08, color="gray", label="Stable (≤ 0)")
-
-ax.set_xlim(0, 30)
-ax.set_ylim(0, 0.13)
-ax.set_xticks(np.linspace(0, 30, 7))
-ax.set_yticks(np.linspace(0, 0.12, 7))
-
-ax.set_xlabel("Non-dimensional Wavelength (2π/40000 km)")
-ax.set_ylabel("Growth Rate (1/day)")
-ax.set_title("Growth Rate of the Most Unstable Mode")
-
-polish_axes(ax)
-ax.legend(loc="upper right", ncols=1)
-fig.tight_layout()
-fig.savefig(FPATH_OUTPUT / "growth_rate.png")
-plt.close(fig)
+fig, axes = plt.subplots(2, 1, figsize=(10.5, 12.4), sharex=True)
+(ax1, ax2) = axes
 
 # ----------------------------
-# Figure 2: Phase speed (all modes + highlight most-unstable positive-growth)
+# (1) Growth Rate of the Most Unstable Mode
 # ----------------------------
-fig, ax = plt.subplots(figsize=(10.5, 6.2))
+ax1.plot(x, growth_max, label="Max growth over modes", lw=2.5, color="black")
 
-# Plot all modes lightly for context (vectorized, no Python loops):
-# We broadcast x (Nλ,) to (Nλ, Nmodes) for a single scatter call.
+# Optional shading for stable region (commented by default)
+# ax1.fill_between(x, 0, growth_max, where=(growth_max <= 0),
+#                  alpha=0.08, color="gray", label="Stable (≤ 0)")
+
+ax1.set_xlim(0, 30)
+ax1.set_ylim(0, 0.13)
+ax1.set_xticks(np.linspace(0, 30, 7))
+ax1.set_yticks(np.linspace(0, 0.12, 7))
+ax1.set_ylabel("Growth Rate (1/day)")
+ax1.set_title("Growth Rate of the Most Unstable Mode")
+
+polish_axes(ax1)
+ax1.legend(loc="upper right", ncols=1)
+
+# ----------------------------
+# (2) Phase Speed of All Modes
+# ----------------------------
+# Broadcast x for scatter plot
 X = np.broadcast_to(x[:, None], speed.shape)
-ax.scatter(X, speed, s=8, alpha=0.25, edgecolors="none", label="All modes")
+ax2.scatter(X, speed, s=8, alpha=0.75, edgecolors="none", label="All modes")
 
-# Overlay the most-unstable mode (only where growth>0)
-ax.scatter(x, speed_max,
-           s=36, facecolors="none", edgecolors="black", linewidths=1.2,
-           label="Most-unstable (growth > 0)")
+# Highlight most unstable mode (growth > 0)
+ax2.scatter(x, speed_max,
+            s=36, facecolors="none", edgecolors="black", linewidths=1.2,
+            label="Most-unstable (growth > 0)")
 
-ax.set_xlim(0, 30)
-ax.set_ylim(-5, 60)
-ax.set_xticks(np.linspace(0, 30, 7))
-ax.set_yticks(np.linspace(0, 60, 7))
+ax2.set_xlim(0, 30)
+ax2.set_ylim(-5, 60)
+ax2.set_xticks(np.linspace(0, 30, 7))
+ax2.set_yticks(np.linspace(0, 60, 7))
+ax2.set_xlabel("Non-dimensional Wavelength (2π/40000 km)")
+ax2.set_ylabel("Phase Speed (m s$^{-1}$)")
+ax2.set_title("Phase Speed of All Modes")
 
-ax.set_xlabel("Non-dimensional Wavelength (2π/40000 km)")
-ax.set_ylabel("Phase Speed (m s$^{-1}$)")
-ax.set_title("Phase Speed of All Modes")
+polish_axes(ax2)
+ax2.legend(loc="upper right")
 
-polish_axes(ax)
-ax.legend(loc="upper right")
-fig.tight_layout()
-fig.savefig(FPATH_OUTPUT / "phase_speed.png")
+# ----------------------------
+# Final adjustments
+# ----------------------------
+fig.tight_layout(h_pad=2.0)  # increase vertical spacing between subplots
+fig.savefig(FPATH_OUTPUT / "diagnostic.png", dpi=300)
 plt.close(fig)

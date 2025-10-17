@@ -79,7 +79,7 @@ state_vec = integration(state_vec, t, k, init, coeff_matrix
 fpath::String = "/home/b11209013/2025_Research/MSI/File/";
 
 # save state vector
-h5open(fpath*"Full/state.h5","w") do f
+h5open(fpath*"Full/Origin/state.h5","w") do f
     write(f, "state vector", state_vec)
     write(f, "time", t)
     write(f, "wavenumber", k)

@@ -16,7 +16,7 @@ from matplotlib.animation import FuncAnimation, FFMpegWriter, PillowWriter;
 sys.path.append("/home/b11209013/Package/")
 import Plot_Style as ps; # type: ignore
 
-with h5py.File("/home/b11209013/2025_Research/MSI/File/Full/reconstruction.h5", "r") as f:
+with h5py.File("/home/b11209013/2025_Research/MSI/File/Full/Origin/reconstruction.h5", "r") as f:
     w = np.transpose(np.array(f.get("w")).astype(np.complex64).real, axes=(1, 0, 2));          # (nt, nz, nx)
     T = np.transpose(np.array(f.get("T")).astype(np.complex64).real, axes=(1, 0, 2));          # (nt, nz, nx)
     J = np.transpose(np.array(f.get("J")).astype(np.complex64).real, axes=(1, 0, 2));          # (nt, nz, nx)
@@ -27,61 +27,115 @@ with h5py.File("/home/b11209013/2025_Research/MSI/File/Full/reconstruction.h5", 
 xmin, xmax = float(np.min(x)), float(np.max(x))
 zmin, zmax = float(np.min(z)),  float(np.max(z))
 
-def make_movie(data_3d, x_cells, z_cells, cmap, title_prefix, units, out_path,
-                        fps=40, bitrate=8000):
-    """
-    data_3d: (nt, nz, nx) float32
-    """
-    nt, nz, nx = data_3d.shape
-
-    # Symmetric range for anomalies
-    vmax = float(np.nanmax(np.abs(data_3d)))
-    norm = Normalize(vmin=-vmax, vmax=+vmax)
-
-    fig, ax = plt.subplots(figsize=(16, 9))
-
-    # Create once
-    qm = ax.pcolormesh(
-        x_cells, z_cells, data_3d[0].T,
-        cmap=cmap, norm=norm, shading="nearest"  # "nearest" is fastest
-    )
-    cbar = fig.colorbar(qm, ax=ax, pad=0.02)
-    cbar.ax.tick_params(labelsize=16)
-    cbar.set_label(f"[ {units} ]", fontsize=20)
-
-    # Axes cosmetics
-    ax.set_xlabel("X [ 100 km ]", fontsize=20)
-    ax.set_ylabel("Z [ km ]", fontsize=20)
-    ax.set_xticks(np.linspace(-4_000_000, 4_000_000, 5))
-    ax.set_xticklabels(["-40","-20","0","20","40"], fontsize=16)
-    ax.set_yticks(np.linspace(0, 14_000, 8))
-    ax.set_yticklabels(["0","2","4","6","8","10","12","14"], fontsize=16)
-    ax.set_xlim(np.min(x_cells), np.max(x_cells))
-    ax.set_ylim(np.min(z_cells), np.max(z_cells))
-
+def make_dual_movie(
+    dataA_3d, dataB_3d,          # (nt, nz, nx) each
+    x_cells, z_cells,
+    cmaps=("RdBu_r", "BrBG_r"),
+    titles=(r"$T^\prime$", r"$J^\prime$"),
+    units=("K", r"K day$^{-1}$"),
+    out_path="/tmp/dual.mp4",
+    t=None, lam_km=8640.0,
+    fps=40, bitrate=8000,
+    figsize=(10.5, 12.4),        # matches your stacked figure
+):
+    # Shapes & time
+    nt, nz, nx = dataA_3d.shape
+    assert dataB_3d.shape == (nt, nz, nx), "dataA and dataB must have identical shapes"
+    if t is None:
+        t = np.arange(nt, dtype=float)
     tmax = float(np.max(t))
 
-    # Fast per-frame update: update only the underlying array
-    # QuadMesh.set_array expects a flat array of the *face colors*; for
-    # pcolormesh with 2D data, pass raveled data. Matplotlib handles mapping.
-    def update(i):
-        qm.set_array(data_3d[i].T.ravel())
-        ax.set_title(f"{title_prefix} (λ=8640 km)  {t[i]:.1f}/{tmax}; Max={np.max(data_3d[i]):.2f}", fontsize=24)
-        return (qm,)
+    # Independent symmetric color ranges (per field)
+    vmaxA = float(np.nanmax(np.abs(dataA_3d)))
+    vmaxB = float(np.nanmax(np.abs(dataB_3d)))
+    normA = Normalize(vmin=-vmaxA, vmax=+vmaxA)
+    normB = Normalize(vmin=-vmaxB, vmax=+vmaxB)
 
-    ani = FuncAnimation(fig, update, frames=nt, blit=False)
-    ani.save(out_path,
-                writer=FFMpegWriter(fps=fps, bitrate=bitrate, extra_args=["-pix_fmt","yuv420p"]))
+    # Figure & axes (2 x 1)
+    fig, axes = plt.subplots(2, 1, figsize=figsize, sharex=False)
+    axA, axB = axes
+
+    # Panel A
+    qmA = axA.pcolormesh(
+        x_cells, z_cells, dataA_3d[0].T,
+        cmap=cmaps[0], norm=normA, shading="nearest"
+    )
+    cbarA = fig.colorbar(qmA, ax=axA, pad=0.02)
+    cbarA.ax.tick_params(labelsize=16)
+    cbarA.set_label(f"[ {units[0]} ]", fontsize=18)
+
+    axA.set_ylabel("Z [ km ]", fontsize=18)
+    axA.set_xlabel("X [ 100 km ]", fontsize=18)
+    axA.set_xticks(np.linspace(-4_000_000, 4_000_000, 5))
+    axA.set_xticklabels(["-40","-20","0","20","40"], fontsize=16)
+    axA.set_yticks(np.linspace(0, 14_000, 8))
+    axA.set_yticklabels(["0","2","4","6","8","10","12","14"], fontsize=16)
+    axA.set_xlim(np.min(x_cells), np.max(x_cells))
+    axA.set_ylim(np.min(z_cells), np.max(z_cells))
+    titleA = axA.set_title(
+        f"{titles[0]}  (λ = {lam_km:.0f} km)   t = {t[0]:.1f}/{tmax:.1f}   Max = {np.nanmax(dataA_3d[0]):.2f}",
+        fontsize=18
+    )
+
+    # Panel B
+    qmB = axB.pcolormesh(
+        x_cells, z_cells, dataB_3d[0].T,
+        cmap=cmaps[1], norm=normB, shading="nearest"
+    )
+    cbarB = fig.colorbar(qmB, ax=axB, pad=0.02)
+    cbarB.ax.tick_params(labelsize=16)
+    cbarB.set_label(f"[ {units[1]} ]", fontsize=18)
+
+    axB.set_ylabel("Z [ km ]", fontsize=18)
+    axB.set_xlabel("X [ 100 km ]", fontsize=18)
+    axB.set_xticks(np.linspace(-4_000_000, 4_000_000, 5))
+    axB.set_xticklabels(["-40","-20","0","20","40"], fontsize=16)
+    axB.set_yticks(np.linspace(0, 14_000, 8))
+    axB.set_yticklabels(["0","2","4","6","8","10","12","14"], fontsize=16)
+    axB.set_xlim(np.min(x_cells), np.max(x_cells))
+    axB.set_ylim(np.min(z_cells), np.max(z_cells))
+    titleB = axB.set_title(
+        f"{titles[1]}  (λ = {lam_km:.0f} km)   t = {t[0]:.1f}/{tmax:.1f}   Max = {np.nanmax(dataB_3d[0]):.2f}",
+        fontsize=18
+    )
+
+    # Optional polish if available
+    for ax in (axA, axB):
+        try:
+            polish_axes(ax)
+        except NameError:
+            pass
+
+    fig.tight_layout(h_pad=2.0)
+
+    # Update both panels each frame (fast path: set_array with raveled data)
+    def update(i):
+        qmA.set_array(dataA_3d[i].T.ravel())
+        titleA.set_text(
+            f"{titles[0]}  (λ = {lam_km:.0f} km)   t = {t[i]:.1f}/{tmax:.1f}   Max = {np.nanmax(dataA_3d[i]):.2f}"
+        )
+        qmB.set_array(dataB_3d[i].T.ravel())
+        titleB.set_text(
+            f"{titles[1]}  (λ = {lam_km:.0f} km)   t = {t[i]:.1f}/{tmax:.1f}   Max = {np.nanmax(dataB_3d[i]):.2f}"
+        )
+        return (qmA, titleA, qmB, titleB)
+
+    ani = FuncAnimation(fig, update, frames=nt, blit=False, interval=1000.0/fps)
+    ani.save(
+        out_path,
+        writer=FFMpegWriter(fps=fps, bitrate=bitrate, extra_args=["-pix_fmt", "yuv420p"])
+    )
     plt.close(fig)
 
-make_movie(
-    T, x, z,
-    cmap="RdBu_r", title_prefix=r"$T^\prime$", units="K",
-    out_path="/home/b11209013/2025_Research/MSI/Fig/Full/Temp_prof.mp4",
-)
 
-make_movie(
-    J, x, z,
-    cmap="BrBG_r", title_prefix=r"$J^\prime$", units="K/day",
-    out_path="/home/b11209013/2025_Research/MSI/Fig/Full/heat_prof.mp4",
+# ===== Example call: combine T and J into one video =====
+make_dual_movie(
+    dataA_3d=T,
+    dataB_3d=J,
+    x_cells=x, z_cells=z,
+    cmaps=("RdBu_r", "BrBG_r"),
+    titles=(r"$T^\prime$", r"$J^\prime$"),
+    units=("K", r"K day$^{-1}$"),
+    out_path="/home/b11209013/2025_Research/MSI/Fig/Full/Origin/T_and_J.mp4",
+    t=t, lam_km=8640.0, fps=40, bitrate=8000
 )
