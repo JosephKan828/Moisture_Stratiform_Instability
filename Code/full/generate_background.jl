@@ -35,7 +35,7 @@ Nz       ::Int64           = length(z);          # Number of vertical coordinate
 
 # Temporal setting
 Δt ::Float64         = 1e-1;              # Time interval: 0.1 day
-Lt ::Float64         = 1e2;               # simulation duration: 100 days
+Lt ::Float64         = 60;                # simulation duration: 60 days
 t  ::Vector{Float64} = collect(0.0:Δt:Lt) # time axis
 Nt ::Int64           = length(t);         # length of time 
 

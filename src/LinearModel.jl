@@ -52,7 +52,8 @@ Returns a parameter set according to the experiment type.
     `"conv_radiation_full"` — Convection + (moisture + temperature) radiation  
     `"conv_radiation_moist"` — Convection + (moisture-only) radiation
 """
-function default_params(exptype::String="conv_only")
+function default_params(exptype::String="conv_only", rad_scaling::Float64=0.01)
+
     if exptype == "conv_only"
         # --- Convection only ---
         return ModelParams(
@@ -66,7 +67,8 @@ function default_params(exptype::String="conv_only")
         return ModelParams(
             1.4, 0.0, 1.0, 2.0, 1.0, 0.5, 1.1, -1.0, 0.3, 1.0,
             1.0, 0.7, 4.0, 0.5, 1/12, 0.1,
-            -0.042, -0.0087, -0.011, -0.069, 5.61, 3.36
+            -0.042*rad_scaling, -0.0087*rad_scaling, -0.011*rad_scaling,
+            -0.069*rad_scaling, 5.61*rad_scaling, 3.36*rad_scaling
         )
 
     elseif exptype == "conv_radiation_moist"
@@ -74,7 +76,7 @@ function default_params(exptype::String="conv_only")
         return ModelParams(
             1.4, 0.0, 1.0, 2.0, 1.0, 0.5, 1.1, -1.0, 0.3, 1.0,
             1.0, 0.7, 4.0, 0.5, 1/12, 0.1,
-            0.0, 0.0, 0.0, 0.0, 5.61, 3.36
+            0.0, 0.0, 0.0, 0.0, 5.61*rad_scaling, 3.36*rad_scaling
         )
 
     else
