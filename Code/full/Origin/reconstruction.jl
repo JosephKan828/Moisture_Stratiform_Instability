@@ -12,9 +12,9 @@ using .Galerkin_Fourier
 # Import necessary data
 #####################
 
-FPATH_INPUT :: String = "/home/b11209013/2025_Research/MSI/File/Full/Origin/state.h5"
-FPATH_SIM   :: String = "/home/b11209013/2025_Research/MSI/File/Sim_stuff/"
-FPATH_OUTPUT:: String = "/home/b11209013/2025_Research/MSI/File/Full/Origin/"
+FPATH_INPUT :: String = "/work/b11209013/2025_Research/MSI/Full/Origin/state.h5"
+FPATH_SIM   :: String = "/work/b11209013/2025_Research/MSI/Sim_stuff/"
+FPATH_OUTPUT:: String = "/work/b11209013/2025_Research/MSI/Full/Origin/"
 
 # load state vector
 state, t, k, vars = h5open(FPATH_INPUT, "r") do f

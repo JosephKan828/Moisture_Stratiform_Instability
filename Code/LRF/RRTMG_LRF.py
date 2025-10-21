@@ -27,7 +27,7 @@ import Plot_Style as ps; # type: ignore
 ps.apply_custom_plot_style();
 
 # Load data
-with h5py.File("/home/b11209013/2025_Research/MSI/File/Rad/mean_state.h5", "r") as f:
+with h5py.File("/work/b11209013/2025_Research/MSI/Rad_Stuff/mean_state.h5", "r") as f:
     q_mean = np.array(f.get("q"))[::-1];
     t_mean = np.array(f.get("t"))[::-1];
 
@@ -122,7 +122,7 @@ for l in range(nlev):
 #     LRF[key] = temp_resp;
 
 # Save files
-with h5py.File("/home/b11209013/2025_Research/MSI/File/Rad/LRF.h5", "w") as f: 
+with h5py.File("/work/b11209013/2025_Research/MSI/Rad_Stuff/LRF.h5", "w") as f: 
     f.create_dataset("q_lw", data = LRF["q_lw"].T)
     f.create_dataset("q_sw", data = LRF["q_sw"].T)
     f.create_dataset("t_lw", data = LRF["t_lw"].T)

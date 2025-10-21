@@ -21,7 +21,7 @@ def main():
 
 
     # ==== 2. save file ==== #
-    with h5py.File("/home/b11209013/2025_Research/MSI/File/Rad/mean_state.h5", "w") as f:
+    with h5py.File("/work/b11209013/2025_Research/MSI/Rad_Stuff/mean_state.h5", "w") as f:
         f.create_dataset("q", data=q_mean);
         f.create_dataset("t", data=t_mean);
 

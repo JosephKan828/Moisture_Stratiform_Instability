@@ -48,7 +48,7 @@ def annotate_coeff(ax, label, coeff_array, xy_axes=(0.03, 0.15)):
         bbox=dict(boxstyle="round", facecolor="white", alpha=0.85, edgecolor="0.8")
     )
 
-with h5py.File("/home/b11209013/2025_Research/MSI/File/Sim_stuff/background.h5", "r") as f:
+with h5py.File("/work/b11209013/2025_Research/MSI/Sim_stuff/background.h5", "r") as f:
     rho0 = np.array(f.get("ρ0")).squeeze()[::-1];
     z_itp = np.array(f.get("z")).squeeze()[::-1];
 

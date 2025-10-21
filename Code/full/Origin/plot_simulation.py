@@ -16,7 +16,7 @@ from matplotlib.animation import FuncAnimation, FFMpegWriter, PillowWriter;
 sys.path.append("/home/b11209013/Package/")
 import Plot_Style as ps; # type: ignore
 
-with h5py.File("/home/b11209013/2025_Research/MSI/File/Full/Origin/reconstruction.h5", "r") as f:
+with h5py.File("/work/b11209013/2025_Research/MSI/Full/Origin/reconstruction.h5", "r") as f:
     w = np.transpose(np.array(f.get("w")).astype(np.complex64).real, axes=(1, 0, 2));          # (nt, nz, nx)
     T = np.transpose(np.array(f.get("T")).astype(np.complex64).real, axes=(1, 0, 2));          # (nt, nz, nx)
     J = np.transpose(np.array(f.get("J")).astype(np.complex64).real, axes=(1, 0, 2));          # (nt, nz, nx)
@@ -26,6 +26,11 @@ with h5py.File("/home/b11209013/2025_Research/MSI/File/Full/Origin/reconstructio
 
 xmin, xmax = float(np.min(x)), float(np.max(x))
 zmin, zmax = float(np.min(z)),  float(np.max(z))
+
+def polish_axes(ax):
+    ax.tick_params(direction="in", length=6, width=1.1, top=True, right=True)
+    for spine in ax.spines.values():
+        spine.set_linewidth(1.1)
 
 def make_dual_movie(
     dataA_3d, dataB_3d,          # (nt, nz, nx) each
@@ -136,6 +141,6 @@ make_dual_movie(
     cmaps=("RdBu_r", "BrBG_r"),
     titles=(r"$T^\prime$", r"$J^\prime$"),
     units=("K", r"K day$^{-1}$"),
-    out_path="/home/b11209013/2025_Research/MSI/Fig/Full/Origin/T_and_J.mp4",
+    out_path="/work/b11209013/2025_Research/MSI/Animation/Full/Origin/prof_evo.mp4",
     t=t, lam_km=8640.0, fps=40, bitrate=8000
 )

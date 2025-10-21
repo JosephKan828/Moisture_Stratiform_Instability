@@ -19,7 +19,8 @@ using .LinearModel
 # Model parameters and functions
 #####################
 # parameters
-params = default_params("conv_radiation_full");
+scaling_factor :: Float64 = 0.1; # scaling factor for radiation heating rate
+params = default_params("conv_radiation_full", scaling_factor);
 
 # Integration function
 function integration(state, t, k, init, coeff_mat)
@@ -43,7 +44,7 @@ end
 #####################
 # Import necessary data
 #####################
-FPATH_SIM ::String = "/home/b11209013/2025_Research/MSI/File/Sim_stuff/";
+FPATH_SIM ::String = "/work/b11209013/2025_Research/MSI/Sim_stuff/";
 
 # # background field
 ρ0, p0, T0, z_bg = h5open(FPATH_SIM * "background.h5", "r") do f
@@ -80,10 +81,10 @@ state_vec ::Array{ComplexF64} = zeros(Nt,6,length(k));
 state_vec = integration(state_vec, t, k, init, coeff_matrix
 );
 
-fpath::String = "/home/b11209013/2025_Research/MSI/File/";
+fpath::String = "/work/b11209013/2025_Research/MSI/";
 
 # save state vector
-h5open(fpath*"Full/state_rad.h5","w") do f
+h5open(fpath*"Full/Rad/state_rad_"*string(scaling_factor)*".h5","w") do f
     write(f, "state vector", state_vec)
     write(f, "time", t)
     write(f, "wavenumber", k)

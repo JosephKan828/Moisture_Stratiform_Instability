@@ -6,7 +6,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt;
 
 # load data
-FPATH_INPUT  = "/home/b11209013/2025_Research/MSI/File/Full/Origin/diagnose.h5"
+FPATH_INPUT  = "/work/b11209013/2025_Research/MSI/Full/Origin/diagnose.h5"
 FPATH_OUTPUT = Path("/home/b11209013/2025_Research/MSI/Fig/Full/Origin/")
 FPATH_OUTPUT.mkdir(parents=True, exist_ok=True) # create directory if not exist
 

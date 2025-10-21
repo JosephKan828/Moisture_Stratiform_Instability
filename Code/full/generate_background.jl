@@ -69,7 +69,7 @@ end ;
 # Save files 
 #####################
 
-fpath::String = "/home/b11209013/2025_Research/MSI/File/";
+fpath::String = "/work/b11209013/2025_Research/MSI/";
 
 # domain setting
 h5open(fpath*"Sim_stuff/domain.h5","w") do f

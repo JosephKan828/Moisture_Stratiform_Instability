@@ -10,10 +10,10 @@ from scipy.interpolate import interp1d
 
 def main():
     # Load data
-    fpath = "/home/b11209013/2025_Research/MSI/File/";
+    fpath = "/work/b11209013/2025_Research/MSI/";
 
     ## Load LRF
-    with h5py.File(fpath+"Rad/LRF.h5", "r" ) as f:
+    with h5py.File(fpath+"Rad_Stuff/LRF.h5", "r" ) as f:
 
         q_lw = np.array(f.get("q_lw"))
         q_sw = np.array(f.get("q_sw"))
@@ -37,7 +37,7 @@ def main():
     z_std = np.array(pressure_to_height_std((levels).astype(int) * units.hPa)) *1000.0
 
     ## Load moisture correlation
-    mean_moist = np.loadtxt(fpath+"Rad/mean_corr_moisture.txt")
+    mean_moist = np.loadtxt(fpath+"Rad_Stuff/mean_corr_moisture.txt")
     # mean_temp  = np.loadtxt(fpath+"Rad/mean_corr_temperature.txt")
 
     mean_moist_itp = np.interp(
@@ -124,7 +124,7 @@ def main():
     # plt.show()
     plt.close()
 
-    with h5py.File(fpath+"Rad/Rad_anom.h5", "w" ) as f:
+    with h5py.File(fpath+"Rad_Stuff/Rad_anom.h5", "w" ) as f:
         f.create_dataset("LW_moist_pert", data=lw_moist_pert);
         f.create_dataset("SW_moist_pert", data=sw_moist_pert);
         f.create_dataset("LW_g1_pert", data=lw_g1_pert);

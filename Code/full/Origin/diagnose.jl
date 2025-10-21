@@ -35,7 +35,7 @@ speed  = zeros(Float64, Nv, Nk)
 end
 
 # save file
-h5open("/home/b11209013/2025_Research/MSI/File/Full/Origin/diagnose.h5", "w") do f
+h5open("/work/b11209013/2025_Research/MSI/Full/Origin/diagnose.h5", "w") do f
     write(f, "λ", λ);
     write(f, "k", k);
     write(f, "growth_rate", growth);

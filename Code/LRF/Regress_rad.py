@@ -65,7 +65,7 @@ def main():
         lw_g2 = np.array(f.get("LW_g2_pert")).squeeze();
         sw_g2 = np.array(f.get("SW_g2_pert")).squeeze();
 
-    with h5py.File("/home/b11209013/2025_Research/MSI/File/Sim_stuff/background.h5", "r") as f:
+    with h5py.File("/work/b11209013/2025_Research/MSI/Sim_stuff/background.h5", "r") as f:
         rho0 = np.array(f.get("ρ0")).squeeze()[::-1];
         z_itp = np.array(f.get("z")).squeeze()[::-1];
     

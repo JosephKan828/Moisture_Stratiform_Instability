@@ -12,9 +12,11 @@ using .Galerkin_Fourier
 # Import necessary data
 #####################
 
-FPATH_INPUT :: String = "/home/b11209013/2025_Research/MSI/File/Full/state_rad.h5"
-FPATH_SIM   :: String = "/home/b11209013/2025_Research/MSI/File/Sim_stuff/"
-FPATH_OUTPUT:: String = "/home/b11209013/2025_Research/MSI/File/Full/"
+rad_scaling = 0.1
+
+FPATH_INPUT :: String = "/work/b11209013/2025_Research/MSI/Full/Rad/state_rad_"*string(rad_scaling)*".h5"
+FPATH_SIM   :: String = "/work/b11209013/2025_Research/MSI/Sim_stuff/"
+FPATH_OUTPUT:: String = "/work/b11209013/2025_Research/MSI/Full/Rad/"
 
 # load state vector
 state, t, k, vars = h5open(FPATH_INPUT, "r") do f
@@ -114,7 +116,7 @@ R_r = real.(R)  # (T,X,Z)
 
 println(size(w))
 
-h5open(joinpath(FPATH_OUTPUT, "reconstruction_rad.h5"), "w") do f
+h5open(joinpath(FPATH_OUTPUT, "reconstruction_rad_"*string(rad_scaling)*".h5"), "w") do f
     write(f, "w", w_r)
     write(f, "T", T_r)
     write(f, "J", J_r)

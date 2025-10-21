@@ -44,7 +44,7 @@ mean_corr = np.array(beta.mean(["lat", "lon"]));
 
 z_std = np.array(pressure_to_height_std((lev.values).astype(int) * units.hPa)) *1000.0
 
-np.savetxt("/home/b11209013/2025_Research/MSI/File/mean_corr_temperature.txt", mean_corr);
+np.savetxt("/work/b11209013/2025_Research/MSI/Rad_Stuff/mean_corr_temperature.txt", mean_corr);
 
 G1 = np.pi/2 * np.sin(np.pi * z_std/z_std.max()) * 0.0033
 G2 = np.pi/2 * np.sin(2 * np.pi * z_std/z_std.max()) * 0.0033

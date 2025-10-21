@@ -38,7 +38,7 @@ end
 #####################
 # Import necessary data
 #####################
-FPATH_SIM ::String = "/home/b11209013/2025_Research/MSI/File/Sim_stuff/";
+FPATH_SIM ::String = "/work/b11209013/2025_Research/MSI/Sim_stuff/";
 
 # background field
 ρ0, p0, T0, z_bg = h5open(FPATH_SIM * "background.h5", "r") do f
@@ -76,7 +76,7 @@ state_vec ::Array{ComplexF64} = zeros(Nt,6,length(k));
 state_vec = integration(state_vec, t, k, init, coeff_matrix
 );
 
-fpath::String = "/home/b11209013/2025_Research/MSI/File/";
+fpath::String = "/work/b11209013/2025_Research/MSI/";
 
 # save state vector
 h5open(fpath*"Full/Origin/state.h5","w") do f
