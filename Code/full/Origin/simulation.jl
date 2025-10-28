@@ -67,7 +67,7 @@ Nt :: Int64 = length(t);          # number of time steps
 
 
 # Initial state vector
-init :: Matrix{ComplexF64} = randn(6, length(k))*0.1;
+init :: Matrix{ComplexF64} = randn(6, length(k))*0.1 .+ 1im.*randn(6, length(k))*0.1;
 ## initial_state_vec: row1: w1; row2: w2; row3: T1; row4: T2; row5: q; row6: L;
 
 # preallocate state vector
@@ -75,6 +75,8 @@ state_vec ::Array{ComplexF64} = zeros(Nt,6,length(k));
 
 state_vec = integration(state_vec, t, k, init, coeff_matrix
 );
+
+println(imag.(state_vec))
 
 fpath::String = "/work/b11209013/2025_Research/MSI/";
 
