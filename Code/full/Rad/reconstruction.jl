@@ -12,7 +12,9 @@ using .Galerkin_Fourier
 # Import necessary data
 #####################
 
-rad_scaling = 0.1
+rad_scaling = ARGS[1]
+
+println("Rad scaling factor: ", rad_scaling)
 
 FPATH_INPUT :: String = "/work/b11209013/2025_Research/MSI/Full/Rad/state_rad_"*string(rad_scaling)*".h5"
 FPATH_SIM   :: String = "/work/b11209013/2025_Research/MSI/Sim_stuff/"
