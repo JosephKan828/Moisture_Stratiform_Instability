@@ -19,7 +19,7 @@ using .LinearModel
 # Model parameters and functions
 #####################
 # parameters
-scaling_factor :: Float64 = 0.1; # scaling factor for radiation heating rate
+scaling_factor :: Float64 = parse(Float64, ARGS[1]); # scaling factor for radiation heating rate
 params = default_params("conv_radiation_full", scaling_factor);
 
 # Integration function
@@ -72,7 +72,7 @@ end
 Nt :: Int64 = length(t);                  # number of time steps
 
 # Initial state vector
-init :: Matrix{ComplexF64} = randn(6, length(k))*0.1;
+init :: Matrix{ComplexF64} = randn(6, length(k))*0.1 .+ im .* randn(6, length(k))*0.1;
 ## initial_state_vec: row1: w1; row2: w2; row3: T1; row4: T2; row5: q; row6: L;
 
 # preallocate state vector
