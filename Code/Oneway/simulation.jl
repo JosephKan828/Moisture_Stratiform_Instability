@@ -111,7 +111,7 @@ p0 :: Vector{Float64} = @. 101325*(1.0 - Γ/300*z)^(g/Rd/Γ);
 k ::Vector{Float64} = 2π*4320.0./λ;           # wavenumber is in angular and non-dimensional
 Nk::Int64           = length(k);
 # Initial state vector
-init :: Matrix{ComplexF64} = randn(4, length(k))*0.1;
+init :: Matrix{ComplexF64} = randn(4, length(k))*0.1 + im*randn(4, length(k))*0.1;
 ## initial_state_vec: row1: T1; row2: T2; row3: q; row4: J1;
 
 inv_mat ::Matrix{ComplexF64} = zeros(length(k), Nx);

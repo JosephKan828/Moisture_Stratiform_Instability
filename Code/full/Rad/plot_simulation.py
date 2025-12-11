@@ -22,7 +22,7 @@ scaling_factor = float(sys.argv[1])
 # 1. Read reconstructed data
 #################################
 
-with h5py.File(f"/work/b11209013/2025_Research/MSI/Full/Rad/reconstruction_rad_{scaling_factor}.h5", "r") as f:
+with h5py.File(f"/work/b11209013/2025_Research/MSI/Full/Rad/reconstruction_rad_{scaling_factor}_mod_L.h5", "r") as f:
     w = np.transpose(np.array(f.get("w")).astype(np.complex64).real, axes=(1, 0, 2));          # (nt, nz, nx)
     T = np.transpose(np.array(f.get("T")).astype(np.complex64).real, axes=(1, 0, 2));          # (nt, nz, nx)
     J = np.transpose(np.array(f.get("J")).astype(np.complex64).real, axes=(1, 0, 2));          # (nt, nz, nx)
@@ -74,16 +74,16 @@ titleA = ax.set_title(
 plt.tight_layout(h_pad=2.0)
 
 # Update both panels each frame (fast path: set_array with raveled data)
-def update(i):
+def ani_update(i):
     qmA.set_array(T[i].T.ravel())
     titleA.set_text(
         r"$T^\prime$"+f" (λ = 8640 km)   t = {t[i]:.1f}/{tmax:.1f}"
     )
     return (qmA, titleA)
 
-ani = FuncAnimation(fig, update, frames=t.size, blit=False, interval=1000.0/fps)
+ani = FuncAnimation(fig, ani_update, frames=t.size, blit=False, interval=1000.0/fps)
 ani.save(
-    f"/work/b11209013/2025_Research/MSI/Animation/Full/Rad/T_prof_evo_{scaling_factor}.mp4",
+    f"/work/b11209013/2025_Research/MSI/Animation/Full/Rad/T_prof_evo_{scaling_factor}_mod_L.mp4",
     writer=FFMpegWriter(fps=fps, extra_args=["-pix_fmt", "yuv420p"]),
     dpi=500
 )
@@ -130,9 +130,9 @@ def update(i):
     )
     return (qmA, titleA)
 
-ani = FuncAnimation(fig, update, frames=t.size, blit=False, interval=1000.0/fps)
+ani = FuncAnimation(fig, ani_update, frames=t.size, blit=False, interval=1000.0/fps)
 ani.save(
-    f"/work/b11209013/2025_Research/MSI/Animation/Full/Rad/J_prof_evo_{scaling_factor}.mp4",
+    f"/work/b11209013/2025_Research/MSI/Animation/Full/Rad/J_prof_evo_{scaling_factor}_mod_L.mp4",
     writer=FFMpegWriter(fps=fps, extra_args=["-pix_fmt", "yuv420p"]),
     dpi=500
 )

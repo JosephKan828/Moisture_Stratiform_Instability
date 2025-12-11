@@ -73,6 +73,7 @@ Nt :: Int64 = length(t);                  # number of time steps
 
 # Initial state vector
 init :: Matrix{ComplexF64} = randn(6, length(k))*0.1 .+ im .* randn(6, length(k))*0.1;
+init[end,:] .*= 10.0;
 ## initial_state_vec: row1: w1; row2: w2; row3: T1; row4: T2; row5: q; row6: L;
 
 # preallocate state vector
@@ -84,7 +85,7 @@ state_vec = integration(state_vec, t, k, init, coeff_matrix
 fpath::String = "/work/b11209013/2025_Research/MSI/";
 
 # save state vector
-h5open(fpath*"Full/Rad/state_rad_"*string(scaling_factor)*".h5","w") do f
+h5open(fpath*"Full/Rad/state_rad_"*string(scaling_factor)*"_mod_L.h5","w") do f
     write(f, "state vector", state_vec)
     write(f, "time", t)
     write(f, "wavenumber", k)
