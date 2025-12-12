@@ -173,6 +173,49 @@ In this simulation, we will use Eq. (3), (6), and (17) as prognostic equations, 
 
 The way we apply prognostics on this system is shown in [Appendix B — Linear Dynamic System](https://www.notion.so/Appendix-B-Linear-Dynamic-System-25d70c23cf0980a08a63e97185220c19?pvs=21). Additionally, this system can also be written in a form of parametric harmonic oscillator, the derivation is in [Appendix C — Parametric Harmonic Oscillator](https://www.notion.so/Appendix-C-Parametric-Harmonic-Oscillator-25e70c23cf098045a047f96a635cf256?pvs=21).
 
+## Project Structure
+
+MSI/
+  Project.toml
+  Manifest.toml
+
+  src/
+    MSI.jl
+    LinearModel.jl
+    Simulation.jl
+    IO.jl
+    Diagnostics.jl
+
+  data/                       # All input datasets
+    background.h5
+    vertical_mode.h5
+    domain.h5
+    inv_mat.h5
+
+  experiments/
+    Full/
+      Origin/
+        config.toml
+        run_full_origin.jl
+
+  output/                     # Numerical results — FOR SAVING MODEL OUTPUTS
+    Full/
+      Origin/
+        state.h5
+        diagnostics.h5
+        log.txt
+
+  figures/                    # For storing generated figures
+    Full/
+      Origin/
+        dispersion_relation.png
+        q_time_series.png
+        vertical_mode_shapes.pdf
+
+  scripts/
+    quick_test.jl
+
+
 ## Appendix
 
 - [Appendix A. — Deriving Anelastic Equations](https://www.notion.so/Appendix-A-Deriving-Anelastic-Equations-25b70c23cf09805b98e8de6f632964a0?pvs=21)

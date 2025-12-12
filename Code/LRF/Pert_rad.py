@@ -20,6 +20,11 @@ def main():
         t_lw = np.array(f.get("t_lw"))
         t_sw = np.array(f.get("t_sw"))
 
+    ## load for vertical motion
+    with h5py.File("/home/b11209013/2025_Research/Obs/Files/ERA5/LRF_SW_w.h5", "r") as f:
+        LRF_sw = np.array(f.get("LRF"))
+    with h5py.File("/home/b11209013/2025_Research/Obs/Files/ERA5/LRF_LW_w.h5", "r") as f:
+        LRF_lw = np.array(f.get("LRF"))
 
     # vertical profile
     with h5py.File(fpath+"Sim_stuff/vertical_mode.h5","r") as f:
@@ -32,6 +37,10 @@ def main():
     plt.savefig("/home/b11209013/2025_Research/MSI/Fig/vertical_mode.png")
     plt.close()
     
+    ## load density profile
+    with h5py.File("/home/b11209013/2025_Research/Kuang2008/data/background.h5","r") as f:
+        rho_profile = np.array(f.get("ρ0")).squeeze(); #
+
     ## design vertical coordinates
     levels = np.linspace(100, 1000, 37)
     z_std = np.array(pressure_to_height_std((levels).astype(int) * units.hPa)) *1000.0
