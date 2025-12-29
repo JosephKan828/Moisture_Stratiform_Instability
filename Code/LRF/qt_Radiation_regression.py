@@ -1,5 +1,5 @@
 # ================================================================================
-# Regress radiative profile associated with moisture, temperature, vertical motion
+# Regress radiative profile associated with moisture, temperature
 # ================================================================================
 
 # #####################
@@ -97,6 +97,16 @@ def main() -> None:
 
     RT1_sw: np.ndarray = ( ( rho_itp[ None, : ]*T1_sw_rad ) @ bases.T @ np.linalg.inv( bases @ bases.T ) ).squeeze()
     RT2_sw: np.ndarray = ( ( rho_itp[ None, : ]*T2_sw_rad ) @ bases.T @ np.linalg.inv( bases @ bases.T ) ).squeeze()
+
+    with h5py.File(
+        f"{RAD_DIR}qt_coeff.h5", "w"
+    ) as f:
+        f.create_dataset( "Rq_lw" , data=Rq_lw )
+        f.create_dataset( "Rq_sw" , data=Rq_sw )
+        f.create_dataset( "RT1_lw", data=RT1_lw )
+        f.create_dataset( "RT1_sw", data=RT1_sw )
+        f.create_dataset( "RT2_lw", data=RT2_lw )
+        f.create_dataset( "RT2_sw", data=RT2_sw )
 
     # ##############################################
     # Verification for the coefficients
