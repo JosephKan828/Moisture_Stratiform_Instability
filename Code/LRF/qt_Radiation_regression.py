@@ -31,7 +31,7 @@ def main() -> None:
         t_sw_lrf: np.ndarray = np.array( f.get( "t_sw" ) )[ ::-1, ::-1 ]
 
     # Load moisture perturbaiton
-    q_pert: np.ndarray = np.loadtxt( RAD_DIR + "mean_corr_moisture.txt" )[ ::-1 ] # 1000 -> 100
+    q_pert: np.ndarray = np.loadtxt( RAD_DIR + "mean_corr_moisture.txt" ) # 1000 -> 100
 
     # Load background density profile
     with h5py.File( SIM_DIR + "background.h5", "r" ) as f:
@@ -44,13 +44,11 @@ def main() -> None:
     levels: np.ndarray = np.linspace( 1000, 100, 37 )
 
     q_pert_itp: np.ndarray = interp1d(
-        [1000.0, 925.0, 850.0, 700.0, 500.0, 250.0],
+        [1000.0, 925.0, 850.0, 700.0, 500.0, 250.0, 200.0, 100.0],
         q_pert, kind = "linear",
         fill_value="extrapolate", bounds_error=False,  #type: ignore
         )( levels )
-    
-    q_pert_itp[ q_pert_itp < 0.0 ] = 0.0
-    
+
     # #########################################
     # Design vertical modes
     # #########################################
@@ -71,17 +69,19 @@ def main() -> None:
     # ########################################
     # Compute Radiative Heating corresponding to q and T
     # ########################################
-    
+
     # Compute Moisture-induced part
-    q_lw_rad: np.ndarray = ( q_lw_lrf @ q_pert_itp ).reshape( 1, -1 )
-    q_sw_rad: np.ndarray = ( q_sw_lrf @ q_pert_itp ).reshape( 1, -1 )
+    unit_factor: float = 1e-3*2.5e6/1004.5
+
+    q_lw_rad: np.ndarray = ( q_lw_lrf @ q_pert_itp ).reshape( 1, -1 )*unit_factor
+    q_sw_rad: np.ndarray = ( q_sw_lrf @ q_pert_itp ).reshape( 1, -1 )*unit_factor
 
     # Compute Temperature-induced part
-    T1_lw_rad: np.ndarray = ( t_lw_lrf @ ( G1*0.0033 ) ).T
-    T2_lw_rad: np.ndarray = ( t_lw_lrf @ ( G2*0.0033 ) ).T
+    T1_lw_rad: np.ndarray = ( t_lw_lrf @ ( G1*0.0033 / rho_itp[:, None] ) ).T
+    T2_lw_rad: np.ndarray = ( t_lw_lrf @ ( G2*0.0033 / rho_itp[:, None] ) ).T
 
-    T1_sw_rad: np.ndarray = ( t_sw_lrf @ ( G1*0.0033 ) ).T
-    T2_sw_rad: np.ndarray = ( t_sw_lrf @ ( G2*0.0033 ) ).T
+    T1_sw_rad: np.ndarray = ( t_sw_lrf @ ( G1*0.0033 / rho_itp[:, None] ) ).T
+    T2_sw_rad: np.ndarray = ( t_sw_lrf @ ( G2*0.0033 / rho_itp[:, None] ) ).T
 
     # ############################################
     # Decompose radiative heating for unit impulse
@@ -133,9 +133,9 @@ def main() -> None:
     axs[0].axvline( 0.0, color="k", linewidth=2, linestyle="--" )
     axs[0].spines["right"].set_visible(False)
     axs[0].spines["top"].set_visible(False)
-    axs[0].set_xticks( np.linspace( -0.5, 0.5, 5 ) )
+    axs[0].set_xticks( np.linspace( -1, 1, 5 ) )
     axs[0].set_xticklabels(
-        ["-0.50", "-0.25", "0.0", "0.25", "0.50"],
+        ["-1.0", "-0.5", "0.0", "0.5", "1.0"],
         fontsize=18
         )
     axs[0].set_yticks( [1000, 900, 800, 700, 600, 500, 400, 300, 200, 100] )
@@ -143,7 +143,7 @@ def main() -> None:
         ["1000", "900", "800", "700", "600", "500", "400", "300", "200", "100"],
         fontsize=18
         )
-    axs[0].set_xlim( -0.55, 0.55 )
+    axs[0].set_xlim( -1.02, 1.02 )
     axs[0].set_ylim( 1000, 100 )
     axs[0].set_title(
         "Moisture", fontsize=18
@@ -168,12 +168,12 @@ def main() -> None:
     axs[1].axvline( 0.0, color="k", linewidth=2, linestyle="--" )
     axs[1].spines["right"].set_visible(False)
     axs[1].spines["top"].set_visible(False)
-    axs[1].set_xticks( np.linspace( -0.0001, 0.0001, 3 ) )
+    axs[1].set_xticks( np.linspace( -0.00025, 0.00025, 3 ) )
     axs[1].set_xticklabels(
-        ["-0.0001", "0.0", "0.0001"],
+        ["-0.00025", "0.0", "0.00025"],
         fontsize=18
         )
-    axs[1].set_xlim( -0.00015, 0.00015 )
+    axs[1].set_xlim( -0.00028, 0.00028 )
     axs[1].set_ylim( 1000, 100 )
     axs[1].set_title(
         f"$T_1$", fontsize=18
@@ -202,12 +202,12 @@ def main() -> None:
     axs[2].axvline( 0.0, color="k", linewidth=2, linestyle="--" )
     axs[2].spines["right"].set_visible(False)
     axs[2].spines["top"].set_visible(False)
-    axs[2].set_xticks( np.linspace( -0.00025, 0.00025, 3 ) )
+    axs[2].set_xticks( np.linspace( -0.0003, 0.0003, 3 ) )
     axs[2].set_xticklabels(
-        ["-0.00025", "0.0", "0.00025"],
+        ["-0.0003", "0.0", "0.0003"],
         fontsize=18
         )
-    axs[2].set_xlim( -0.00025, 0.00025 )
+    axs[2].set_xlim( -0.00033, 0.00033 )
     axs[2].set_ylim( 1000, 100 )
     axs[2].set_title(
         f"$T_2$", fontsize=18

@@ -31,6 +31,8 @@ def main() -> None:
         LW_LRF: np.ndarray = np.array( f.get( "LRF_lw" ) )
         SW_LRF: np.ndarray = np.array( f.get( "LRF_sw" ) )
 
+    print( "EOF shape: ", EOF.shape )
+
     nmode: int = EOF.shape[0]
 
     # Load background profile
@@ -69,8 +71,10 @@ def main() -> None:
     # #######################################
 
     # Convert vertical normal mode into pressure velocity
-    G1_ω : np.ndarray = np.asarray( -ρ0_itp*9.81*G1 )[ None, : ]
-    G2_ω : np.ndarray = np.asarray( -ρ0_itp*9.81*G2 )[ None, : ]
+    G1_ω : np.ndarray = np.asarray( -9.81*G1/86400.0 )[ None, : ]
+    G2_ω : np.ndarray = np.asarray( -9.81*G2/86400.0 )[ None, : ]
+
+    print( "G1_ω shape: ", G1_ω.shape )
 
     # Calculate PCs
     G1ω_pcs: np.ndarray = np.asarray(
@@ -78,7 +82,7 @@ def main() -> None:
     ).T
     G2ω_pcs: np.ndarray = np.asarray(
         G2_ω @ EOF.T @ np.linalg.inv( EOF @ EOF.T )
-    ).T
+    ).T # Shape: (nmodes, nsamples)
 
     # ##########################################
     # Predict radiative heating and coefficients
@@ -150,17 +154,17 @@ def main() -> None:
     axs[0].axvline( 0.0, color="k", linewidth=2, linestyle="--" )
     axs[0].spines["right"].set_visible( False )
     axs[0].spines["top"].set_visible( False )
-    axs[0].set_xticks( np.linspace( -80, 80, 9 ) )
-    axs[0].set_xticklabels(
-        [ str( int(i) ) for i in np.linspace(-80, 80, 9) ],
-        fontsize=18
-    )
+    # axs[0].set_xticks( np.linspace( -80, 80, 9 ) )
+    # axs[0].set_xticklabels(
+    #     [ str( int(i) ) for i in np.linspace(-80, 80, 9) ],
+    #     fontsize=18
+    # )
     axs[0].set_yticks( np.linspace( 1000, 100, 10 ) )
     axs[0].set_yticklabels(
         [ str( int( i ) ) for i in np.linspace(1000, 100, 10) ],
         fontsize=18
     )
-    axs[0].set_xlim( -90, 90 )
+    # axs[0].set_xlim( -90, 90 )
     axs[0].set_ylim( 1000, 100 )
     axs[0].set_title(
         "$w_1$", fontsize=18
@@ -187,12 +191,12 @@ def main() -> None:
     axs[1].axvline( 0.0, color="k", linewidth=2, linestyle="--" )
     axs[1].spines["right"].set_visible( False )
     axs[1].spines["top"].set_visible( False )
-    axs[1].set_xticks( np.linspace( -150, 150, 7 ) )
-    axs[1].set_xticklabels(
-        [ str( int(i) ) for i in np.linspace( -150, 150, 7 ) ],
-        fontsize=18
-    )
-    axs[1].set_xlim( -170, 170 )
+    # axs[1].set_xticks( np.linspace( -150, 150, 7 ) )
+    # axs[1].set_xticklabels(
+    #     [ str( int(i) ) for i in np.linspace( -150, 150, 7 ) ],
+    #     fontsize=18
+    # )
+    # axs[1].set_xlim( -170, 170 )
     axs[1].set_ylim( 1000, 100 )
     axs[1].set_title(
         "$w_2$", fontsize=18
