@@ -27,11 +27,9 @@ def main() -> None:
     with h5py.File(
         f"{RAD_DIR}w_LRF.h5", "r"
     ) as f:
-        EOF   : np.ndarray = np.array( f.get( "EOF" ) )
+        EOF   : np.ndarray = np.array( f.get( "EOF" ) )    # shape: (nmode, nlev)
         LW_LRF: np.ndarray = np.array( f.get( "LRF_lw" ) )
         SW_LRF: np.ndarray = np.array( f.get( "LRF_sw" ) )
-
-    print( "EOF shape: ", EOF.shape )
 
     nmode: int = EOF.shape[0]
 
@@ -73,8 +71,6 @@ def main() -> None:
     # Convert vertical normal mode into pressure velocity
     G1_ω : np.ndarray = np.asarray( -9.81*G1/86400.0 )[ None, : ]
     G2_ω : np.ndarray = np.asarray( -9.81*G2/86400.0 )[ None, : ]
-
-    print( "G1_ω shape: ", G1_ω.shape )
 
     # Calculate PCs
     G1ω_pcs: np.ndarray = np.asarray(
@@ -154,16 +150,7 @@ def main() -> None:
     axs[0].axvline( 0.0, color="k", linewidth=2, linestyle="--" )
     axs[0].spines["right"].set_visible( False )
     axs[0].spines["top"].set_visible( False )
-    # axs[0].set_xticks( np.linspace( -80, 80, 9 ) )
-    # axs[0].set_xticklabels(
-    #     [ str( int(i) ) for i in np.linspace(-80, 80, 9) ],
-    #     fontsize=18
-    # )
-    axs[0].set_yticks( np.linspace( 1000, 100, 10 ) )
-    axs[0].set_yticklabels(
-        [ str( int( i ) ) for i in np.linspace(1000, 100, 10) ],
-        fontsize=18
-    )
+    axs[0].tick_params( axis="both", which="major", labelsize=18 )
     # axs[0].set_xlim( -90, 90 )
     axs[0].set_ylim( 1000, 100 )
     axs[0].set_title(
@@ -191,12 +178,7 @@ def main() -> None:
     axs[1].axvline( 0.0, color="k", linewidth=2, linestyle="--" )
     axs[1].spines["right"].set_visible( False )
     axs[1].spines["top"].set_visible( False )
-    # axs[1].set_xticks( np.linspace( -150, 150, 7 ) )
-    # axs[1].set_xticklabels(
-    #     [ str( int(i) ) for i in np.linspace( -150, 150, 7 ) ],
-    #     fontsize=18
-    # )
-    # axs[1].set_xlim( -170, 170 )
+    axs[1].tick_params( axis="both", which="major", labelsize=18 )
     axs[1].set_ylim( 1000, 100 )
     axs[1].set_title(
         "$w_2$", fontsize=18
@@ -208,7 +190,7 @@ def main() -> None:
 
 
     plt.savefig(
-        "/home/b11209013/2025_Research/MSI/Fig/Rad/w_regression.png",
+        f"/home/b11209013/2025_Research/MSI/Fig/Rad/w_regression_{EOF.shape[0]}modes.png",
         dpi=600, bbox_inches="tight"
     )
     plt.close()
@@ -218,7 +200,7 @@ def main() -> None:
     # ###################
 
     with h5py.File(
-        f"{RAD_DIR}w_coeff.h5", "w"
+        f"{RAD_DIR}w_coeff_{EOF.shape[0]}modes.h5", "w"
     ) as f:
         f.create_dataset( "Rw1_lw", data=lw_G1_coeff )
         f.create_dataset( "Rw1_sw", data=sw_G1_coeff )
